@@ -28,6 +28,7 @@ import numpy as np
 RESULTS_ROOT = Path(__file__).parent / "results"
 OVERLAP_FILE = RESULTS_ROOT / "overlap_experiment" / "overlap_experiment_results.json"
 CHANNEL_FILE = RESULTS_ROOT / "channel_experiment" / "channel_experiment_results.json"
+MULTINODE_FILE = RESULTS_ROOT / "multinode_experiment" / "multinode_results.json"
 OUTPUT_DIR = RESULTS_ROOT / "paper_figures"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -58,7 +59,8 @@ CONFIG_COLORS = {
 def load_data():
     overlap = json.loads(OVERLAP_FILE.read_text()) if OVERLAP_FILE.exists() else {}
     channel = json.loads(CHANNEL_FILE.read_text()) if CHANNEL_FILE.exists() else {}
-    return overlap, channel
+    multinode = json.loads(MULTINODE_FILE.read_text()) if MULTINODE_FILE.exists() else {}
+    return overlap, channel, multinode
 
 
 def find_best(d):
@@ -710,20 +712,379 @@ def paper_figure5(channel_data):
 
 
 # ===================================================================
+# Figure 6: Multi-node overview — THE headline result
+# ===================================================================
+def paper_figure6(multinode_data):
+    """Multi-node: massive AUTO gaps, tree_simple dominates."""
+    seq = multinode_data.get("sequential", {})
+    ovl = multinode_data.get("overlap", {})
+    if not seq or not ovl:
+        print("  Skipping Figure 6 (no multi-node data)")
+        return
+
+    mn_sizes = ["256KB", "1MB", "4MB", "16MB", "64MB", "256MB"]
+    sizes = [s for s in mn_sizes if s in seq and s in ovl]
+
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+
+    # Panel 1: All configs under Sequential
+    ax1 = axes[0]
+    x = np.arange(len(sizes))
+    width = 0.15
+    for i, cfg in enumerate(CONFIGS):
+        vals = [seq[s].get(cfg, 0) for s in sizes]
+        ax1.bar(x + (i - 2) * width, vals, width, label=CONFIG_SHORT[cfg],
+                color=CONFIG_COLORS[cfg], edgecolor="white")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(sizes, fontsize=10)
+    ax1.set_xlabel("Message Size", fontsize=12)
+    ax1.set_ylabel("Iteration Time (ms)", fontsize=12)
+    ax1.set_title("Multi-Node Sequential", fontsize=13, fontweight="bold")
+    ax1.legend(fontsize=8, loc="upper left")
+    ax1.grid(axis="y", alpha=0.3)
+    ax1.set_yscale("log")
+
+    # Panel 2: All configs under Overlap
+    ax2 = axes[1]
+    for i, cfg in enumerate(CONFIGS):
+        vals = [ovl[s].get(cfg, 0) for s in sizes]
+        ax2.bar(x + (i - 2) * width, vals, width, label=CONFIG_SHORT[cfg],
+                color=CONFIG_COLORS[cfg], edgecolor="white")
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(sizes, fontsize=10)
+    ax2.set_xlabel("Message Size", fontsize=12)
+    ax2.set_ylabel("Iteration Time (ms)", fontsize=12)
+    ax2.set_title("Multi-Node Overlap", fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=8, loc="upper left")
+    ax2.grid(axis="y", alpha=0.3)
+    ax2.set_yscale("log")
+
+    # Panel 3: AUTO gap comparison — SEQ vs OVL
+    ax3 = axes[2]
+    seq_gaps = []
+    ovl_gaps = []
+    for s in sizes:
+        seq_auto = seq[s].get("auto", 0)
+        seq_best = min(seq[s].values())
+        seq_gaps.append((seq_auto - seq_best) / seq_auto * 100 if seq_auto > 0 else 0)
+        ovl_auto = ovl[s].get("auto", 0)
+        ovl_best = min(ovl[s].values())
+        ovl_gaps.append((ovl_auto - ovl_best) / ovl_auto * 100 if ovl_auto > 0 else 0)
+
+    bar_w = 0.35
+    bars1 = ax3.bar(x - bar_w/2, seq_gaps, bar_w, label="Sequential",
+                     color="#3498db", alpha=0.85)
+    bars2 = ax3.bar(x + bar_w/2, ovl_gaps, bar_w, label="Overlap",
+                     color="#e74c3c", alpha=0.85)
+
+    # Annotate percentages
+    for bar, gap in zip(bars1, seq_gaps):
+        if gap > 1:
+            ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                     f"{gap:.0f}%", ha="center", va="bottom", fontsize=8, fontweight="bold")
+    for bar, gap in zip(bars2, ovl_gaps):
+        if gap > 1:
+            ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                     f"{gap:.0f}%", ha="center", va="bottom", fontsize=8, fontweight="bold")
+
+    ax3.set_xticks(x)
+    ax3.set_xticklabels(sizes, fontsize=10, rotation=30, ha="right")
+    ax3.set_xlabel("Message Size", fontsize=12)
+    ax3.set_ylabel("AUTO Gap (%)", fontsize=12)
+    ax3.set_title("AUTO Suboptimality\n(Multi-Node)", fontsize=13, fontweight="bold")
+    ax3.legend(fontsize=10)
+    ax3.grid(axis="y", alpha=0.3)
+
+    plt.suptitle("Multi-Node AllReduce: NCCL AUTO Leaves Up to 57% on the Table\n"
+                 "(2 nodes × 4 A100 GPUs, inter-node network)",
+                 fontsize=15, fontweight="bold", y=1.02)
+    plt.tight_layout()
+    out = OUTPUT_DIR / "paper_figure6_multinode.png"
+    plt.savefig(out, dpi=200, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved {out}")
+
+
+# ===================================================================
+# Figure 7: Single-node vs Multi-node AUTO gap comparison
+# ===================================================================
+def paper_figure7(overlap_data, multinode_data):
+    """The key comparison: AUTO gap amplifies from single-node to multi-node."""
+    sn_seq = overlap_data.get("sequential", {})
+    sn_ovl = overlap_data.get("overlap", {})
+    mn_seq = multinode_data.get("sequential", {})
+    mn_ovl = multinode_data.get("overlap", {})
+
+    if not mn_seq or not mn_ovl:
+        print("  Skipping Figure 7 (no multi-node data)")
+        return
+
+    # Sizes common to both experiments
+    common_sizes = [s for s in ["256KB", "1MB", "4MB", "16MB", "64MB", "256MB"]
+                    if s in sn_seq and s in mn_seq]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    x = np.arange(len(common_sizes))
+    bar_w = 0.2
+
+    # Panel 1: Sequential mode — single-node vs multi-node AUTO gap
+    sn_seq_gaps = []
+    mn_seq_gaps = []
+    for s in common_sizes:
+        sn_auto = sn_seq[s].get("auto", 0)
+        sn_best = min(sn_seq[s].values())
+        sn_seq_gaps.append((sn_auto - sn_best) / sn_auto * 100 if sn_auto > 0 else 0)
+
+        mn_auto = mn_seq[s].get("auto", 0)
+        mn_best = min(mn_seq[s].values())
+        mn_seq_gaps.append((mn_auto - mn_best) / mn_auto * 100 if mn_auto > 0 else 0)
+
+    ax1.bar(x - bar_w/2, sn_seq_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
+            color="#3498db", alpha=0.85)
+    ax1.bar(x + bar_w/2, mn_seq_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
+            color="#e74c3c", alpha=0.85)
+
+    # Annotate amplification factor
+    for i in range(len(common_sizes)):
+        if sn_seq_gaps[i] > 0.5 and mn_seq_gaps[i] > 0.5:
+            amp = mn_seq_gaps[i] / sn_seq_gaps[i]
+            if amp > 1.5:
+                ax1.text(x[i], max(sn_seq_gaps[i], mn_seq_gaps[i]) + 1.5,
+                         f"{amp:.0f}×", ha="center", fontsize=10, fontweight="bold",
+                         color="#c0392b")
+
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(common_sizes, fontsize=10, rotation=30, ha="right")
+    ax1.set_xlabel("Message Size", fontsize=12)
+    ax1.set_ylabel("AUTO Gap (%)", fontsize=12)
+    ax1.set_title("Sequential: AUTO Gap\nSingle-Node vs Multi-Node", fontsize=13, fontweight="bold")
+    ax1.legend(fontsize=9)
+    ax1.grid(axis="y", alpha=0.3)
+
+    # Panel 2: Overlap mode
+    sn_ovl_gaps = []
+    mn_ovl_gaps = []
+    for s in common_sizes:
+        sn_auto = sn_ovl[s].get("auto", 0)
+        sn_best = min(sn_ovl[s].values())
+        sn_ovl_gaps.append((sn_auto - sn_best) / sn_auto * 100 if sn_auto > 0 else 0)
+
+        mn_auto = mn_ovl[s].get("auto", 0)
+        mn_best = min(mn_ovl[s].values())
+        mn_ovl_gaps.append((mn_auto - mn_best) / mn_auto * 100 if mn_auto > 0 else 0)
+
+    ax2.bar(x - bar_w/2, sn_ovl_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
+            color="#3498db", alpha=0.85)
+    ax2.bar(x + bar_w/2, mn_ovl_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
+            color="#e74c3c", alpha=0.85)
+
+    for i in range(len(common_sizes)):
+        if sn_ovl_gaps[i] > 0.5 and mn_ovl_gaps[i] > 0.5:
+            amp = mn_ovl_gaps[i] / sn_ovl_gaps[i]
+            if amp > 1.5:
+                ax2.text(x[i], max(sn_ovl_gaps[i], mn_ovl_gaps[i]) + 1.5,
+                         f"{amp:.0f}×", ha="center", fontsize=10, fontweight="bold",
+                         color="#c0392b")
+
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(common_sizes, fontsize=10, rotation=30, ha="right")
+    ax2.set_xlabel("Message Size", fontsize=12)
+    ax2.set_ylabel("AUTO Gap (%)", fontsize=12)
+    ax2.set_title("Overlap: AUTO Gap\nSingle-Node vs Multi-Node", fontsize=13, fontweight="bold")
+    ax2.legend(fontsize=9)
+    ax2.grid(axis="y", alpha=0.3)
+
+    plt.suptitle("AUTO Gap Amplifies from Single-Node (1-5%) to Multi-Node (10-57%)\n"
+                 "Inter-node network makes config choice critical",
+                 fontsize=15, fontweight="bold", y=1.02)
+    plt.tight_layout()
+    out = OUTPUT_DIR / "paper_figure7_sn_vs_mn.png"
+    plt.savefig(out, dpi=200, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved {out}")
+
+
+# ===================================================================
+# Figure 8: Multi-node winner flips + protocol breakdown
+# ===================================================================
+def paper_figure8(multinode_data):
+    """Multi-node: which protocols win where, and winner flips."""
+    seq = multinode_data.get("sequential", {})
+    ovl = multinode_data.get("overlap", {})
+    if not seq or not ovl:
+        print("  Skipping Figure 8 (no multi-node data)")
+        return
+
+    mn_sizes = [s for s in ["256KB", "1MB", "4MB", "16MB", "64MB", "256MB"]
+                if s in seq and s in ovl]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Panel 1: Relative performance vs AUTO (normalized) for each config
+    # Show how much faster/slower each config is vs AUTO at each size
+    for cfg in CONFIGS:
+        if cfg == "auto":
+            continue
+        seq_ratios = []
+        ovl_ratios = []
+        for s in mn_sizes:
+            auto_t = seq[s].get("auto", 1)
+            cfg_t = seq[s].get(cfg, auto_t)
+            seq_ratios.append(cfg_t / auto_t)
+
+            auto_t_o = ovl[s].get("auto", 1)
+            cfg_t_o = ovl[s].get(cfg, auto_t_o)
+            ovl_ratios.append(cfg_t_o / auto_t_o)
+
+        x = range(len(mn_sizes))
+        ax1.plot(x, seq_ratios, "o--", label=f"SEQ {CONFIG_SHORT[cfg]}",
+                 color=CONFIG_COLORS[cfg], linewidth=1.5, alpha=0.7)
+        ax1.plot(x, ovl_ratios, "s-", label=f"OVL {CONFIG_SHORT[cfg]}",
+                 color=CONFIG_COLORS[cfg], linewidth=2.5)
+
+    ax1.axhline(y=1.0, color="black", linestyle=":", linewidth=1, alpha=0.5, label="AUTO baseline")
+    ax1.set_xticks(range(len(mn_sizes)))
+    ax1.set_xticklabels(mn_sizes, fontsize=10)
+    ax1.set_xlabel("Message Size", fontsize=12)
+    ax1.set_ylabel("Time / AUTO Time (lower = better)", fontsize=12)
+    ax1.set_title("Config Performance Relative to AUTO\n(Multi-Node, SEQ vs OVL)",
+                   fontsize=13, fontweight="bold")
+    ax1.legend(fontsize=7, ncol=2, loc="upper left")
+    ax1.grid(alpha=0.3)
+
+    # Panel 2: Winner flip summary
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(-0.5, len(mn_sizes) - 0.5)
+
+    for i, s in enumerate(mn_sizes):
+        seq_best = find_best(seq[s])[0]
+        ovl_best = find_best(ovl[s])[0]
+        seq_gap = (seq[s].get("auto", 0) - seq[s][seq_best]) / seq[s].get("auto", 1) * 100
+        ovl_gap = (ovl[s].get("auto", 0) - ovl[s][ovl_best]) / ovl[s].get("auto", 1) * 100
+        flipped = seq_best != ovl_best
+
+        color = "#e74c3c" if flipped else "#27ae60"
+        marker = "X" if flipped else "o"
+
+        ax2.scatter(0.15, i, s=200, c=color, marker=marker, zorder=5,
+                    edgecolors="black", linewidths=1)
+        ax2.text(0.25, i - 0.15,
+                 f"SEQ: {CONFIG_SHORT[seq_best]} (gap={seq_gap:.1f}%)",
+                 va="center", fontsize=9, color="#2c3e50")
+        ax2.text(0.25, i + 0.15,
+                 f"OVL: {CONFIG_SHORT[ovl_best]} (gap={ovl_gap:.1f}%)",
+                 va="center", fontsize=9, color="#c0392b" if flipped else "#2c3e50",
+                 fontweight="bold" if flipped else "normal")
+
+    ax2.set_yticks(range(len(mn_sizes)))
+    ax2.set_yticklabels(mn_sizes, fontsize=11)
+    ax2.set_xticks([])
+    ax2.set_title("Multi-Node Winner Summary\n(X = flip between SEQ/OVL)",
+                   fontsize=13, fontweight="bold")
+    ax2.invert_yaxis()
+
+    flip_count = sum(1 for s in mn_sizes if find_best(seq[s])[0] != find_best(ovl[s])[0])
+    ax2.text(0.5, len(mn_sizes) + 0.2,
+             f"{flip_count}/{len(mn_sizes)} sizes flip under overlap",
+             ha="center", fontsize=12, fontweight="bold", color="#c0392b",
+             transform=ax2.get_xaxis_transform())
+
+    plt.suptitle("Multi-Node: Protocol Choice & Winner Flips\n"
+                 "(2 nodes × 4 A100 GPUs)",
+                 fontsize=15, fontweight="bold", y=1.02)
+    plt.tight_layout()
+    out = OUTPUT_DIR / "paper_figure8_mn_flips.png"
+    plt.savefig(out, dpi=200, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved {out}")
+
+
+# ===================================================================
+# Table 4: Multi-node results
+# ===================================================================
+def paper_table4(multinode_data):
+    """Multi-node results table."""
+    seq = multinode_data.get("sequential", {})
+    ovl = multinode_data.get("overlap", {})
+    if not seq or not ovl:
+        print("  Skipping Table 4 (no multi-node data)")
+        return
+
+    mn_sizes = [s for s in ["256KB", "1MB", "4MB", "16MB", "64MB", "256MB"]
+                if s in seq and s in ovl]
+
+    lines = []
+    lines.append("")
+    lines.append("=" * 120)
+    lines.append("  TABLE 4: Multi-Node Results (AllReduce, 2×4 A100 GPUs, inter-node network)")
+    lines.append("=" * 120)
+    lines.append("")
+    lines.append(f"  {'Size':<8s} | {'SEQ Best':>12s} {'SEQ ms':>10s} {'AUTO ms':>10s} {'Gap%':>7s} | "
+                 f"{'OVL Best':>12s} {'OVL ms':>10s} {'AUTO ms':>10s} {'Gap%':>7s} | {'Flip':>5s}")
+    lines.append(f"  {'-'*110}")
+
+    flip_count = 0
+    for s in mn_sizes:
+        seq_best_cfg, seq_best_t = find_best(seq[s])
+        ovl_best_cfg, ovl_best_t = find_best(ovl[s])
+        seq_auto = seq[s].get("auto", 0)
+        ovl_auto = ovl[s].get("auto", 0)
+        seq_gap = (seq_auto - seq_best_t) / seq_auto * 100 if seq_auto > 0 else 0
+        ovl_gap = (ovl_auto - ovl_best_t) / ovl_auto * 100 if ovl_auto > 0 else 0
+        flipped = seq_best_cfg != ovl_best_cfg
+        if flipped:
+            flip_count += 1
+
+        lines.append(
+            f"  {s:<8s} | {CONFIG_SHORT[seq_best_cfg]:>12s} {seq_best_t:>10.3f} {seq_auto:>10.3f} {seq_gap:>+6.1f}% | "
+            f"{CONFIG_SHORT[ovl_best_cfg]:>12s} {ovl_best_t:>10.3f} {ovl_auto:>10.3f} {ovl_gap:>+6.1f}% | "
+            f"{'FLIP' if flipped else '':>5s}")
+
+    lines.append(f"  {'-'*110}")
+    lines.append(f"  Winner flips: {flip_count}/{len(mn_sizes)}")
+    lines.append("")
+
+    # Ring vs Tree analysis
+    lines.append("  Ring vs Tree at large messages (multi-node):")
+    for s in ["16MB", "64MB", "256MB"]:
+        if s not in seq:
+            continue
+        tree_s = seq[s].get("tree_simple", 0)
+        ring_s = seq[s].get("ring_simple", 0)
+        if tree_s > 0 and ring_s > 0:
+            ratio = ring_s / tree_s
+            lines.append(f"    {s}: Ring+Simple={ring_s:.1f}ms, Tree+Simple={tree_s:.1f}ms → Ring is {ratio:.1f}× slower")
+
+    text = "\n".join(lines)
+    out = OUTPUT_DIR / "paper_table4_multinode.txt"
+    out.write_text(text)
+    print(f"  Saved {out}")
+    print(text)
+
+
+# ===================================================================
 # Main
 # ===================================================================
 def main():
     print("Loading experimental data...")
-    overlap_data, channel_data = load_data()
+    overlap_data, channel_data, multinode_data = load_data()
 
     print("\nGenerating paper figures...\n")
 
+    # Single-node figures
     paper_figure1(overlap_data)
     paper_figure2(channel_data)
     paper_figure3(overlap_data, channel_data)
     paper_figure4(channel_data)
     paper_figure5(channel_data)
     paper_table1(overlap_data, channel_data)
+
+    # Multi-node figures
+    paper_figure6(multinode_data)
+    paper_figure7(overlap_data, multinode_data)
+    paper_figure8(multinode_data)
+    paper_table4(multinode_data)
 
     print(f"\nAll outputs saved to {OUTPUT_DIR}/")
 
