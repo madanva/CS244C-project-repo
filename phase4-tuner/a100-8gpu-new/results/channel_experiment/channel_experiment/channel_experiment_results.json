@@ -1,0 +1,646 @@
+{
+  "overlap_cta_sweep": {
+    "1MB": {
+      "1": {
+        "auto": 8.493,
+        "tree_simple": 8.532,
+        "tree_ll128": 8.478,
+        "ring_simple": 8.076,
+        "ring_ll128": 8.527
+      },
+      "2": {
+        "auto": 8.429,
+        "tree_simple": 8.706,
+        "tree_ll128": 8.344,
+        "ring_simple": 8.46,
+        "ring_ll128": 8.558
+      },
+      "4": {
+        "auto": 8.525,
+        "tree_simple": 8.66,
+        "tree_ll128": 8.558,
+        "ring_simple": 8.324,
+        "ring_ll128": 8.46
+      },
+      "8": {
+        "auto": 8.535,
+        "tree_simple": 8.55,
+        "tree_ll128": 8.6,
+        "ring_simple": 8.462,
+        "ring_ll128": 8.35
+      },
+      "12": {
+        "auto": 8.748,
+        "tree_simple": 8.468,
+        "tree_ll128": 8.405,
+        "ring_simple": 8.598,
+        "ring_ll128": 8.668
+      },
+      "16": {
+        "auto": 8.096,
+        "tree_simple": 8.766,
+        "tree_ll128": 8.291,
+        "ring_simple": 8.498,
+        "ring_ll128": 8.574
+      },
+      "24": {
+        "auto": 8.748,
+        "tree_simple": 8.862,
+        "tree_ll128": 8.442,
+        "ring_simple": 8.549,
+        "ring_ll128": 8.263
+      },
+      "32": {
+        "auto": 8.307,
+        "tree_simple": 8.78,
+        "tree_ll128": 8.633,
+        "ring_simple": 8.78,
+        "ring_ll128": 8.357
+      }
+    },
+    "4MB": {
+      "1": {
+        "auto": 8.678,
+        "tree_simple": 9.09,
+        "tree_ll128": 8.627,
+        "ring_simple": 8.496,
+        "ring_ll128": 8.899
+      },
+      "2": {
+        "auto": 8.533,
+        "tree_simple": 8.518,
+        "tree_ll128": 8.545,
+        "ring_simple": 8.281,
+        "ring_ll128": 8.53
+      },
+      "4": {
+        "auto": 8.567,
+        "tree_simple": 8.626,
+        "tree_ll128": 8.399,
+        "ring_simple": 8.245,
+        "ring_ll128": 8.252
+      },
+      "8": {
+        "auto": 8.508,
+        "tree_simple": 8.696,
+        "tree_ll128": 8.652,
+        "ring_simple": 8.72,
+        "ring_ll128": 8.454
+      },
+      "12": {
+        "auto": 8.753,
+        "tree_simple": 8.398,
+        "tree_ll128": 8.802,
+        "ring_simple": 8.918,
+        "ring_ll128": 8.514
+      },
+      "16": {
+        "auto": 8.673,
+        "tree_simple": 8.938,
+        "tree_ll128": 8.458,
+        "ring_simple": 8.747,
+        "ring_ll128": 8.812
+      },
+      "24": {
+        "auto": 8.786,
+        "tree_simple": 8.704,
+        "tree_ll128": 8.772,
+        "ring_simple": 8.727,
+        "ring_ll128": 8.568
+      },
+      "32": {
+        "auto": 8.942,
+        "tree_simple": 8.542,
+        "tree_ll128": 8.836,
+        "ring_simple": 8.812,
+        "ring_ll128": 9.108
+      }
+    },
+    "16MB": {
+      "1": {
+        "auto": 9.624,
+        "tree_simple": 9.892,
+        "tree_ll128": 10.25,
+        "ring_simple": 9.284,
+        "ring_ll128": 9.831
+      },
+      "2": {
+        "auto": 8.994,
+        "tree_simple": 9.363,
+        "tree_ll128": 9.406,
+        "ring_simple": 9.103,
+        "ring_ll128": 9.279
+      },
+      "4": {
+        "auto": 8.516,
+        "tree_simple": 8.788,
+        "tree_ll128": 8.949,
+        "ring_simple": 8.759,
+        "ring_ll128": 8.731
+      },
+      "8": {
+        "auto": 8.88,
+        "tree_simple": 8.648,
+        "tree_ll128": 9.02,
+        "ring_simple": 8.909,
+        "ring_ll128": 8.469
+      },
+      "12": {
+        "auto": 8.885,
+        "tree_simple": 9.163,
+        "tree_ll128": 8.962,
+        "ring_simple": 8.682,
+        "ring_ll128": 8.661
+      },
+      "16": {
+        "auto": 8.922,
+        "tree_simple": 9.074,
+        "tree_ll128": 9.23,
+        "ring_simple": 9.048,
+        "ring_ll128": 9.076
+      },
+      "24": {
+        "auto": 9.415,
+        "tree_simple": 9.321,
+        "tree_ll128": 9.178,
+        "ring_simple": 9.241,
+        "ring_ll128": 9.451
+      },
+      "32": {
+        "auto": 9.16,
+        "tree_simple": 9.755,
+        "tree_ll128": 8.447,
+        "ring_simple": 9.588,
+        "ring_ll128": 8.576
+      }
+    },
+    "64MB": {
+      "1": {
+        "auto": 14.184,
+        "tree_simple": 15.289,
+        "tree_ll128": 17.837,
+        "ring_simple": 14.121,
+        "ring_ll128": 15.88
+      },
+      "2": {
+        "auto": 11.41,
+        "tree_simple": 12.084,
+        "tree_ll128": 12.996,
+        "ring_simple": 11.566,
+        "ring_ll128": 12.42
+      },
+      "4": {
+        "auto": 9.874,
+        "tree_simple": 10.376,
+        "tree_ll128": 10.997,
+        "ring_simple": 9.969,
+        "ring_ll128": 10.47
+      },
+      "8": {
+        "auto": 9.313,
+        "tree_simple": 9.861,
+        "tree_ll128": 10.022,
+        "ring_simple": 9.496,
+        "ring_ll128": 9.667
+      },
+      "12": {
+        "auto": 8.987,
+        "tree_simple": 9.544,
+        "tree_ll128": 9.649,
+        "ring_simple": 9.076,
+        "ring_ll128": 9.475
+      },
+      "16": {
+        "auto": 9.108,
+        "tree_simple": 9.552,
+        "tree_ll128": 9.39,
+        "ring_simple": 8.999,
+        "ring_ll128": 9.196
+      },
+      "24": {
+        "auto": 9.095,
+        "tree_simple": 9.527,
+        "tree_ll128": 9.24,
+        "ring_simple": 8.919,
+        "ring_ll128": 9.319
+      },
+      "32": {
+        "auto": 9.061,
+        "tree_simple": 9.415,
+        "tree_ll128": 9.22,
+        "ring_simple": 9.07,
+        "ring_ll128": 9.285
+      }
+    }
+  },
+  "sequential_cta_sweep": {
+    "1MB": {
+      "1": {
+        "auto": 8.91,
+        "tree_simple": 9.096,
+        "tree_ll128": 8.52,
+        "ring_simple": 8.733,
+        "ring_ll128": 8.745
+      },
+      "2": {
+        "auto": 8.766,
+        "tree_simple": 9.211,
+        "tree_ll128": 8.765,
+        "ring_simple": 8.557,
+        "ring_ll128": 8.72
+      },
+      "4": {
+        "auto": 8.671,
+        "tree_simple": 8.799,
+        "tree_ll128": 8.51,
+        "ring_simple": 8.529,
+        "ring_ll128": 8.786
+      },
+      "8": {
+        "auto": 8.731,
+        "tree_simple": 8.921,
+        "tree_ll128": 8.719,
+        "ring_simple": 8.515,
+        "ring_ll128": 8.694
+      },
+      "12": {
+        "auto": 8.754,
+        "tree_simple": 8.796,
+        "tree_ll128": 8.57,
+        "ring_simple": 8.801,
+        "ring_ll128": 8.71
+      },
+      "16": {
+        "auto": 8.745,
+        "tree_simple": 8.711,
+        "tree_ll128": 8.718,
+        "ring_simple": 8.799,
+        "ring_ll128": 8.583
+      },
+      "24": {
+        "auto": 8.516,
+        "tree_simple": 8.47,
+        "tree_ll128": 8.353,
+        "ring_simple": 8.691,
+        "ring_ll128": 8.411
+      },
+      "32": {
+        "auto": 8.694,
+        "tree_simple": 8.322,
+        "tree_ll128": 8.705,
+        "ring_simple": 8.576,
+        "ring_ll128": 8.724
+      }
+    },
+    "4MB": {
+      "1": {
+        "auto": 9.166,
+        "tree_simple": 9.446,
+        "tree_ll128": 9.245,
+        "ring_simple": 9.136,
+        "ring_ll128": 9.015
+      },
+      "2": {
+        "auto": 8.794,
+        "tree_simple": 9.388,
+        "tree_ll128": 9.078,
+        "ring_simple": 8.788,
+        "ring_ll128": 8.958
+      },
+      "4": {
+        "auto": 8.804,
+        "tree_simple": 9.046,
+        "tree_ll128": 8.504,
+        "ring_simple": 8.713,
+        "ring_ll128": 8.552
+      },
+      "8": {
+        "auto": 8.708,
+        "tree_simple": 9.059,
+        "tree_ll128": 8.563,
+        "ring_simple": 8.593,
+        "ring_ll128": 8.721
+      },
+      "12": {
+        "auto": 8.709,
+        "tree_simple": 8.948,
+        "tree_ll128": 8.752,
+        "ring_simple": 8.556,
+        "ring_ll128": 8.499
+      },
+      "16": {
+        "auto": 8.54,
+        "tree_simple": 8.935,
+        "tree_ll128": 8.683,
+        "ring_simple": 8.493,
+        "ring_ll128": 8.653
+      },
+      "24": {
+        "auto": 8.734,
+        "tree_simple": 8.561,
+        "tree_ll128": 8.399,
+        "ring_simple": 8.858,
+        "ring_ll128": 8.678
+      },
+      "32": {
+        "auto": 8.816,
+        "tree_simple": 8.772,
+        "tree_ll128": 8.649,
+        "ring_simple": 8.717,
+        "ring_ll128": 8.565
+      }
+    },
+    "16MB": {
+      "1": {
+        "auto": 10.031,
+        "tree_simple": 10.789,
+        "tree_ll128": 10.653,
+        "ring_simple": 10.149,
+        "ring_ll128": 10.3
+      },
+      "2": {
+        "auto": 9.638,
+        "tree_simple": 9.821,
+        "tree_ll128": 9.916,
+        "ring_simple": 9.558,
+        "ring_ll128": 9.628
+      },
+      "4": {
+        "auto": 9.071,
+        "tree_simple": 9.458,
+        "tree_ll128": 9.18,
+        "ring_simple": 9.128,
+        "ring_ll128": 8.904
+      },
+      "8": {
+        "auto": 8.89,
+        "tree_simple": 9.101,
+        "tree_ll128": 9.093,
+        "ring_simple": 8.957,
+        "ring_ll128": 8.515
+      },
+      "12": {
+        "auto": 8.167,
+        "tree_simple": 9.334,
+        "tree_ll128": 8.769,
+        "ring_simple": 8.514,
+        "ring_ll128": 8.638
+      },
+      "16": {
+        "auto": 8.88,
+        "tree_simple": 9.411,
+        "tree_ll128": 8.824,
+        "ring_simple": 8.677,
+        "ring_ll128": 8.604
+      },
+      "24": {
+        "auto": 8.803,
+        "tree_simple": 9.299,
+        "tree_ll128": 8.139,
+        "ring_simple": 8.653,
+        "ring_ll128": 8.432
+      },
+      "32": {
+        "auto": 8.857,
+        "tree_simple": 9.418,
+        "tree_ll128": 8.512,
+        "ring_simple": 8.685,
+        "ring_ll128": 8.645
+      }
+    },
+    "64MB": {
+      "1": {
+        "auto": 14.354,
+        "tree_simple": 15.504,
+        "tree_ll128": 18.034,
+        "ring_simple": 14.436,
+        "ring_ll128": 16.38
+      },
+      "2": {
+        "auto": 11.766,
+        "tree_simple": 12.271,
+        "tree_ll128": 13.663,
+        "ring_simple": 11.666,
+        "ring_ll128": 12.632
+      },
+      "4": {
+        "auto": 10.166,
+        "tree_simple": 10.734,
+        "tree_ll128": 11.288,
+        "ring_simple": 10.266,
+        "ring_ll128": 10.686
+      },
+      "8": {
+        "auto": 9.568,
+        "tree_simple": 9.989,
+        "tree_ll128": 10.154,
+        "ring_simple": 9.364,
+        "ring_ll128": 9.81
+      },
+      "12": {
+        "auto": 9.252,
+        "tree_simple": 9.696,
+        "tree_ll128": 9.662,
+        "ring_simple": 9.482,
+        "ring_ll128": 9.478
+      },
+      "16": {
+        "auto": 9.228,
+        "tree_simple": 9.681,
+        "tree_ll128": 9.382,
+        "ring_simple": 8.956,
+        "ring_ll128": 9.103
+      },
+      "24": {
+        "auto": 9.213,
+        "tree_simple": 9.727,
+        "tree_ll128": 9.429,
+        "ring_simple": 8.991,
+        "ring_ll128": 9.244
+      },
+      "32": {
+        "auto": 9.017,
+        "tree_simple": 10.036,
+        "tree_ll128": 9.348,
+        "ring_simple": 9.153,
+        "ring_ll128": 9.258
+      }
+    }
+  },
+  "cta_compute_interaction": {
+    "medium": {
+      "1": {
+        "auto": 1.836,
+        "tree_simple": 2.232,
+        "tree_ll128": 2.099,
+        "ring_simple": 1.818,
+        "ring_ll128": 1.842
+      },
+      "2": {
+        "auto": 1.527,
+        "tree_simple": 1.979,
+        "tree_ll128": 1.724,
+        "ring_simple": 1.571,
+        "ring_ll128": 1.526
+      },
+      "4": {
+        "auto": 1.401,
+        "tree_simple": 1.859,
+        "tree_ll128": 1.451,
+        "ring_simple": 1.46,
+        "ring_ll128": 1.396
+      },
+      "8": {
+        "auto": 1.371,
+        "tree_simple": 1.863,
+        "tree_ll128": 1.372,
+        "ring_simple": 1.384,
+        "ring_ll128": 1.374
+      },
+      "12": {
+        "auto": 1.371,
+        "tree_simple": 1.709,
+        "tree_ll128": 1.388,
+        "ring_simple": 1.386,
+        "ring_ll128": 1.373
+      },
+      "16": {
+        "auto": 1.374,
+        "tree_simple": 1.653,
+        "tree_ll128": 1.387,
+        "ring_simple": 1.41,
+        "ring_ll128": 1.382
+      },
+      "24": {
+        "auto": 1.388,
+        "tree_simple": 1.547,
+        "tree_ll128": 1.385,
+        "ring_simple": 1.388,
+        "ring_ll128": 1.375
+      },
+      "32": {
+        "auto": 1.381,
+        "tree_simple": 1.682,
+        "tree_ll128": 1.398,
+        "ring_simple": 1.516,
+        "ring_ll128": 1.38
+      }
+    },
+    "default": {
+      "1": {
+        "auto": 8.576,
+        "tree_simple": 8.797,
+        "tree_ll128": 8.882,
+        "ring_simple": 8.596,
+        "ring_ll128": 8.432
+      },
+      "2": {
+        "auto": 8.6,
+        "tree_simple": 8.716,
+        "tree_ll128": 8.265,
+        "ring_simple": 8.554,
+        "ring_ll128": 8.749
+      },
+      "4": {
+        "auto": 8.596,
+        "tree_simple": 8.781,
+        "tree_ll128": 8.491,
+        "ring_simple": 8.448,
+        "ring_ll128": 8.524
+      },
+      "8": {
+        "auto": 8.592,
+        "tree_simple": 8.784,
+        "tree_ll128": 8.868,
+        "ring_simple": 8.774,
+        "ring_ll128": 8.754
+      },
+      "12": {
+        "auto": 9.002,
+        "tree_simple": 8.863,
+        "tree_ll128": 8.989,
+        "ring_simple": 8.768,
+        "ring_ll128": 8.775
+      },
+      "16": {
+        "auto": 8.963,
+        "tree_simple": 9.034,
+        "tree_ll128": 9.204,
+        "ring_simple": 8.916,
+        "ring_ll128": 8.805
+      },
+      "24": {
+        "auto": 9.213,
+        "tree_simple": 9.479,
+        "tree_ll128": 9.062,
+        "ring_simple": 9.284,
+        "ring_ll128": 9.142
+      },
+      "32": {
+        "auto": 9.251,
+        "tree_simple": 9.626,
+        "tree_ll128": 9.501,
+        "ring_simple": 9.34,
+        "ring_ll128": 9.107
+      }
+    },
+    "heavy": {
+      "1": {
+        "auto": 26.268,
+        "tree_simple": 25.632,
+        "tree_ll128": 25.915,
+        "ring_simple": 26.074,
+        "ring_ll128": 25.836
+      },
+      "2": {
+        "auto": 25.857,
+        "tree_simple": 25.763,
+        "tree_ll128": 26.047,
+        "ring_simple": 26.113,
+        "ring_ll128": 26.197
+      },
+      "4": {
+        "auto": 26.248,
+        "tree_simple": 26.369,
+        "tree_ll128": 26.086,
+        "ring_simple": 26.188,
+        "ring_ll128": 26.229
+      },
+      "8": {
+        "auto": 25.907,
+        "tree_simple": 25.812,
+        "tree_ll128": 26.242,
+        "ring_simple": 25.863,
+        "ring_ll128": 25.778
+      },
+      "12": {
+        "auto": 25.829,
+        "tree_simple": 25.774,
+        "tree_ll128": 25.837,
+        "ring_simple": 26.2,
+        "ring_ll128": 26.37
+      },
+      "16": {
+        "auto": 26.253,
+        "tree_simple": 26.871,
+        "tree_ll128": 26.15,
+        "ring_simple": 26.185,
+        "ring_ll128": 26.204
+      },
+      "24": {
+        "auto": 26.499,
+        "tree_simple": 26.384,
+        "tree_ll128": 26.843,
+        "ring_simple": 26.353,
+        "ring_ll128": 26.215
+      },
+      "32": {
+        "auto": 26.531,
+        "tree_simple": 26.432,
+        "tree_ll128": 26.428,
+        "ring_simple": 26.664,
+        "ring_ll128": 26.334
+      }
+    }
+  }
+}

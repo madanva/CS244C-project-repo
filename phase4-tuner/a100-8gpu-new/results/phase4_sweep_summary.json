@@ -1,0 +1,92 @@
+{
+  "32KB": {
+    "auto": 8.592,
+    "tree_simple": 8.599,
+    "tree_ll128": 8.58,
+    "ring_simple": 8.692,
+    "ring_ll128": 8.449,
+    "ucb1_converged": 9.792,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.722
+  },
+  "64KB": {
+    "auto": 8.603,
+    "tree_simple": 8.71,
+    "tree_ll128": 8.61,
+    "ring_simple": 8.509,
+    "ring_ll128": 8.603,
+    "ucb1_converged": 9.804,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.731
+  },
+  "256KB": {
+    "auto": 8.573,
+    "tree_simple": 8.781,
+    "tree_ll128": 8.576,
+    "ring_simple": 8.682,
+    "ring_ll128": 8.504,
+    "ucb1_converged": 9.799,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.729
+  },
+  "1MB": {
+    "auto": 8.523,
+    "tree_simple": 8.589,
+    "tree_ll128": 8.691,
+    "ring_simple": 8.743,
+    "ring_ll128": 8.613,
+    "ucb1_converged": 9.828,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.743
+  },
+  "2MB": {
+    "auto": 8.635,
+    "tree_simple": 8.63,
+    "tree_ll128": 8.564,
+    "ring_simple": 8.739,
+    "ring_ll128": 8.685,
+    "ucb1_converged": 9.853,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.783
+  },
+  "4MB": {
+    "auto": 8.625,
+    "tree_simple": 8.967,
+    "tree_ll128": 8.7,
+    "ring_simple": 8.799,
+    "ring_ll128": 8.661,
+    "ucb1_converged": 9.865,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 9.798
+  },
+  "16MB": {
+    "auto": 8.834,
+    "tree_simple": 9.468,
+    "tree_ll128": 8.617,
+    "ring_simple": 8.783,
+    "ring_ll128": 8.748,
+    "ucb1_converged": 10.102,
+    "ucb1_preferred_arm": "ring_ll128",
+    "ucb1_preferred_mean": 9.966
+  },
+  "64MB": {
+    "auto": 9.181,
+    "tree_simple": 9.681,
+    "tree_ll128": 9.308,
+    "ring_simple": 9.094,
+    "ring_ll128": 9.321,
+    "ucb1_converged": 10.622,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 10.44
+  },
+  "256MB": {
+    "auto": 10.908,
+    "tree_simple": 11.556,
+    "tree_ll128": 11.987,
+    "ring_simple": 10.911,
+    "ring_ll128": 11.266,
+    "ucb1_converged": 12.808,
+    "ucb1_preferred_arm": "auto",
+    "ucb1_preferred_mean": 12.534
+  }
+}

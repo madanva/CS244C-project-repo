@@ -1,0 +1,122 @@
+[
+  {
+    "episode": 0,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 9.658
+  },
+  {
+    "episode": 1,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 9.518
+  },
+  {
+    "episode": 2,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.531
+  },
+  {
+    "episode": 3,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 10.168
+  },
+  {
+    "episode": 4,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 10.005
+  },
+  {
+    "episode": 5,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 9.951
+  },
+  {
+    "episode": 6,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.255
+  },
+  {
+    "episode": 7,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.876
+  },
+  {
+    "episode": 8,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 9.538
+  },
+  {
+    "episode": 9,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.873
+  },
+  {
+    "episode": 10,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.754
+  },
+  {
+    "episode": 11,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.608
+  },
+  {
+    "episode": 12,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.818
+  },
+  {
+    "episode": 13,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 10.029
+  },
+  {
+    "episode": 14,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 9.842
+  },
+  {
+    "episode": 15,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.5
+  },
+  {
+    "episode": 16,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.902
+  },
+  {
+    "episode": 17,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.801
+  },
+  {
+    "episode": 18,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.725
+  },
+  {
+    "episode": 19,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.674
+  }
+]

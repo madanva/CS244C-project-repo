@@ -1,0 +1,92 @@
+[
+  {
+    "episode": 0,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 10.465
+  },
+  {
+    "episode": 1,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 11.03
+  },
+  {
+    "episode": 2,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 10.942
+  },
+  {
+    "episode": 3,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 10.44
+  },
+  {
+    "episode": 4,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 10.603
+  },
+  {
+    "episode": 5,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 10.448
+  },
+  {
+    "episode": 6,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 10.427
+  },
+  {
+    "episode": 7,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 10.634
+  },
+  {
+    "episode": 8,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 10.803
+  },
+  {
+    "episode": 9,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 11.175
+  },
+  {
+    "episode": 10,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 10.446
+  },
+  {
+    "episode": 11,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 10.425
+  },
+  {
+    "episode": 12,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 10.632
+  },
+  {
+    "episode": 13,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 10.442
+  },
+  {
+    "episode": 14,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 10.429
+  }
+]

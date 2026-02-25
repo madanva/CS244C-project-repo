@@ -1,0 +1,282 @@
+{
+  "sequential": {
+    "32KB": {
+      "auto": 8.451,
+      "tree_simple": 8.668,
+      "tree_ll128": 8.328,
+      "ring_simple": 8.625,
+      "ring_ll128": 8.652
+    },
+    "64KB": {
+      "auto": 8.443,
+      "tree_simple": 8.495,
+      "tree_ll128": 8.445,
+      "ring_simple": 8.492,
+      "ring_ll128": 8.44
+    },
+    "256KB": {
+      "auto": 8.61,
+      "tree_simple": 8.737,
+      "tree_ll128": 8.594,
+      "ring_simple": 8.354,
+      "ring_ll128": 8.465
+    },
+    "1MB": {
+      "auto": 8.589,
+      "tree_simple": 8.626,
+      "tree_ll128": 8.563,
+      "ring_simple": 8.631,
+      "ring_ll128": 8.671
+    },
+    "2MB": {
+      "auto": 8.598,
+      "tree_simple": 8.733,
+      "tree_ll128": 8.687,
+      "ring_simple": 8.738,
+      "ring_ll128": 8.448
+    },
+    "4MB": {
+      "auto": 8.512,
+      "tree_simple": 8.503,
+      "tree_ll128": 8.599,
+      "ring_simple": 8.752,
+      "ring_ll128": 8.663
+    },
+    "16MB": {
+      "auto": 8.77,
+      "tree_simple": 9.463,
+      "tree_ll128": 8.628,
+      "ring_simple": 8.5,
+      "ring_ll128": 8.659
+    },
+    "64MB": {
+      "auto": 9.159,
+      "tree_simple": 9.745,
+      "tree_ll128": 9.002,
+      "ring_simple": 8.95,
+      "ring_ll128": 9.108
+    },
+    "256MB": {
+      "auto": 10.643,
+      "tree_simple": 11.639,
+      "tree_ll128": 11.574,
+      "ring_simple": 10.655,
+      "ring_ll128": 11.334
+    }
+  },
+  "overlap": {
+    "32KB": {
+      "auto": 8.332,
+      "tree_simple": 8.322,
+      "tree_ll128": 8.505,
+      "ring_simple": 8.557,
+      "ring_ll128": 8.446
+    },
+    "64KB": {
+      "auto": 8.115,
+      "tree_simple": 8.413,
+      "tree_ll128": 8.565,
+      "ring_simple": 8.211,
+      "ring_ll128": 8.599
+    },
+    "256KB": {
+      "auto": 8.36,
+      "tree_simple": 8.569,
+      "tree_ll128": 8.578,
+      "ring_simple": 8.428,
+      "ring_ll128": 8.632
+    },
+    "1MB": {
+      "auto": 8.386,
+      "tree_simple": 9.017,
+      "tree_ll128": 8.28,
+      "ring_simple": 8.546,
+      "ring_ll128": 8.512
+    },
+    "2MB": {
+      "auto": 8.896,
+      "tree_simple": 8.968,
+      "tree_ll128": 8.661,
+      "ring_simple": 8.603,
+      "ring_ll128": 8.827
+    },
+    "4MB": {
+      "auto": 8.634,
+      "tree_simple": 8.79,
+      "tree_ll128": 8.521,
+      "ring_simple": 8.457,
+      "ring_ll128": 8.561
+    },
+    "16MB": {
+      "auto": 8.827,
+      "tree_simple": 8.786,
+      "tree_ll128": 8.837,
+      "ring_simple": 8.563,
+      "ring_ll128": 8.653
+    },
+    "64MB": {
+      "auto": 9.286,
+      "tree_simple": 9.367,
+      "tree_ll128": 9.42,
+      "ring_simple": 9.231,
+      "ring_ll128": 9.422
+    },
+    "256MB": {
+      "auto": 10.616,
+      "tree_simple": 11.298,
+      "tree_ll128": 12.08,
+      "ring_simple": 10.574,
+      "ring_ll128": 11.238
+    }
+  },
+  "compute_sweep": {
+    "1MB": {
+      "light": {
+        "auto": 0.348,
+        "tree_simple": 0.502,
+        "tree_ll128": 0.385,
+        "ring_simple": 0.456,
+        "ring_ll128": 0.362
+      },
+      "medium": {
+        "auto": 1.368,
+        "tree_simple": 1.365,
+        "tree_ll128": 1.358,
+        "ring_simple": 1.361,
+        "ring_ll128": 1.357
+      },
+      "default": {
+        "auto": 8.902,
+        "tree_simple": 8.675,
+        "tree_ll128": 8.829,
+        "ring_simple": 8.85,
+        "ring_ll128": 8.714
+      },
+      "heavy": {
+        "auto": 25.654,
+        "tree_simple": 25.772,
+        "tree_ll128": 26.214,
+        "ring_simple": 25.619,
+        "ring_ll128": 26.039
+      },
+      "extreme": {
+        "auto": 58.711,
+        "tree_simple": 58.955,
+        "tree_ll128": 58.569,
+        "ring_simple": 58.889,
+        "ring_ll128": 58.649
+      }
+    },
+    "4MB": {
+      "light": {
+        "auto": 0.374,
+        "tree_simple": 0.638,
+        "tree_ll128": 0.418,
+        "ring_simple": 0.484,
+        "ring_ll128": 0.389
+      },
+      "medium": {
+        "auto": 1.361,
+        "tree_simple": 1.554,
+        "tree_ll128": 1.363,
+        "ring_simple": 1.362,
+        "ring_ll128": 1.359
+      },
+      "default": {
+        "auto": 8.648,
+        "tree_simple": 8.627,
+        "tree_ll128": 8.675,
+        "ring_simple": 8.587,
+        "ring_ll128": 8.413
+      },
+      "heavy": {
+        "auto": 25.812,
+        "tree_simple": 26.14,
+        "tree_ll128": 26.664,
+        "ring_simple": 25.957,
+        "ring_ll128": 26.213
+      },
+      "extreme": {
+        "auto": 59.24,
+        "tree_simple": 59.103,
+        "tree_ll128": 58.313,
+        "ring_simple": 58.6,
+        "ring_ll128": 58.527
+      }
+    },
+    "16MB": {
+      "light": {
+        "auto": 0.578,
+        "tree_simple": 1.135,
+        "tree_ll128": 0.618,
+        "ring_simple": 0.581,
+        "ring_ll128": 0.564
+      },
+      "medium": {
+        "auto": 1.429,
+        "tree_simple": 2.101,
+        "tree_ll128": 1.501,
+        "ring_simple": 1.436,
+        "ring_ll128": 1.429
+      },
+      "default": {
+        "auto": 8.445,
+        "tree_simple": 8.577,
+        "tree_ll128": 8.719,
+        "ring_simple": 8.756,
+        "ring_ll128": 8.774
+      },
+      "heavy": {
+        "auto": 26.079,
+        "tree_simple": 26.176,
+        "tree_ll128": 26.098,
+        "ring_simple": 26.042,
+        "ring_ll128": 26.268
+      },
+      "extreme": {
+        "auto": 59.588,
+        "tree_simple": 59.919,
+        "tree_ll128": 59.212,
+        "ring_simple": 59.302,
+        "ring_ll128": 59.351
+      }
+    },
+    "64MB": {
+      "light": {
+        "auto": 1.262,
+        "tree_simple": 1.839,
+        "tree_ll128": 1.888,
+        "ring_simple": 1.268,
+        "ring_ll128": 1.674
+      },
+      "medium": {
+        "auto": 1.925,
+        "tree_simple": 2.579,
+        "tree_ll128": 2.423,
+        "ring_simple": 1.918,
+        "ring_ll128": 2.184
+      },
+      "default": {
+        "auto": 9.118,
+        "tree_simple": 9.364,
+        "tree_ll128": 9.675,
+        "ring_simple": 9.232,
+        "ring_ll128": 9.432
+      },
+      "heavy": {
+        "auto": 26.062,
+        "tree_simple": 26.448,
+        "tree_ll128": 26.758,
+        "ring_simple": 26.247,
+        "ring_ll128": 26.503
+      },
+      "extreme": {
+        "auto": 58.771,
+        "tree_simple": 59.895,
+        "tree_ll128": 59.29,
+        "ring_simple": 59.56,
+        "ring_ll128": 59.204
+      }
+    }
+  }
+}

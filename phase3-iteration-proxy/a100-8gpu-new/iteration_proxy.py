@@ -20,12 +20,17 @@ def parse_args():
     p.add_argument("--warmup", type=int, default=5, help="Warmup iterations")
     p.add_argument("--size", type=int, default=2**20, help="All-reduce tensor size (elements, float32)")
     p.add_argument("--compute-mul", type=int, default=4096, help="Compute matmul size (NxN)")
+    p.add_argument(
+        "--overlap",
+        action="store_true",
+        help="Enable compute–communication overlap using separate CUDA streams",
+    )
     p.add_argument("--out", type=str, default="", help="Output file for iteration times (rank 0)")
     return p.parse_args()
 
 
 def compute_phase(device: torch.device, n: int, dtype=torch.float32):
-    """Simulate per-iteration compute: matmul on GPU."""
+    """Simulate per-iteration compute: matmul on GPU (single stream version)."""
     a = torch.randn(n, n, device=device, dtype=dtype)
     b = torch.randn(n, n, device=device, dtype=dtype)
     c = torch.matmul(a, b)
@@ -34,7 +39,7 @@ def compute_phase(device: torch.device, n: int, dtype=torch.float32):
 
 
 def allreduce_phase(tensor: torch.Tensor):
-    """All-reduce the tensor across all ranks."""
+    """All-reduce the tensor across all ranks (single stream version)."""
     dist.all_reduce(tensor, op=dist.ReduceOp.SUM)
     torch.cuda.synchronize()
 
@@ -53,34 +58,76 @@ def main():
     elem = args.size
     grad = torch.randn(elem, device=device, dtype=torch.float32) / world_size
 
-    # Warmup
-    for _ in range(args.warmup):
-        compute_phase(device, args.compute_mul)
-        allreduce_phase(grad.clone())
-
-    # Timed iterations
-    times_ms = []
     reward_file = os.environ.get("NCCL_TUNER_REWARD_FILE", "")
-    for _ in range(args.iters):
-        torch.cuda.synchronize()
-        t0 = time.perf_counter()
-        compute_phase(device, args.compute_mul)
-        allreduce_phase(grad.clone())
-        torch.cuda.synchronize()
-        t1 = time.perf_counter()
-        iter_ms = (t1 - t0) * 1000.0
-        times_ms.append(iter_ms)
 
-        # If an RL tuner reward file is configured, log one reward per iteration
-        # from rank 0 so the tuner can learn online.
-        if reward_file and rank == 0:
-            try:
-                n_bytes = elem * 4  # float32 elements
-                with open(reward_file, "a") as f:
-                    f.write(f"allreduce,{n_bytes},{1},{world_size},{iter_ms:.3f}\n")
-            except OSError:
-                # Best-effort: ignore logging errors so experiments still run.
-                pass
+    if not args.overlap:
+        # Warmup without overlap
+        for _ in range(args.warmup):
+            compute_phase(device, args.compute_mul)
+            allreduce_phase(grad.clone())
+
+        # Timed iterations, single stream (no overlap)
+        times_ms = []
+        for _ in range(args.iters):
+            torch.cuda.synchronize()
+            t0 = time.perf_counter()
+            compute_phase(device, args.compute_mul)
+            allreduce_phase(grad.clone())
+            torch.cuda.synchronize()
+            t1 = time.perf_counter()
+            iter_ms = (t1 - t0) * 1000.0
+            times_ms.append(iter_ms)
+
+            if reward_file and rank == 0:
+                try:
+                    n_bytes = elem * 4  # float32 elements
+                    with open(reward_file, "a") as f:
+                        f.write(f"allreduce,{n_bytes},{1},{world_size},{iter_ms:.3f}\n")
+                except OSError:
+                    pass
+    else:
+        # Overlap mode: use separate CUDA streams for compute and all-reduce
+        compute_stream = torch.cuda.Stream(device=device)
+        comm_stream = torch.cuda.Stream(device=device)
+
+        # Warmup with overlap pattern (no timing)
+        for _ in range(args.warmup):
+            with torch.cuda.stream(compute_stream):
+                a = torch.randn(args.compute_mul, args.compute_mul, device=device, dtype=torch.float32)
+                b = torch.randn(args.compute_mul, args.compute_mul, device=device, dtype=torch.float32)
+                _ = torch.matmul(a, b)
+            with torch.cuda.stream(comm_stream):
+                tmp = grad.clone()
+                dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
+            torch.cuda.synchronize()
+
+        # Timed iterations with overlap: schedule compute and all-reduce
+        times_ms = []
+        for _ in range(args.iters):
+            torch.cuda.synchronize()
+            t0 = time.perf_counter()
+
+            with torch.cuda.stream(compute_stream):
+                a = torch.randn(args.compute_mul, args.compute_mul, device=device, dtype=torch.float32)
+                b = torch.randn(args.compute_mul, args.compute_mul, device=device, dtype=torch.float32)
+                _ = torch.matmul(a, b)
+
+            with torch.cuda.stream(comm_stream):
+                tmp = grad.clone()
+                dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
+
+            torch.cuda.synchronize()
+            t1 = time.perf_counter()
+            iter_ms = (t1 - t0) * 1000.0
+            times_ms.append(iter_ms)
+
+            if reward_file and rank == 0:
+                try:
+                    n_bytes = elem * 4  # float32 elements
+                    with open(reward_file, "a") as f:
+                        f.write(f"allreduce,{n_bytes},{1},{world_size},{iter_ms:.3f}\n")
+                except OSError:
+                    pass
 
     if rank == 0:
         out_lines = [f"{t:.3f}" for t in times_ms]

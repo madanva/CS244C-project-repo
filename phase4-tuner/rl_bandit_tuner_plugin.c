@@ -11,7 +11,10 @@
 // The plugin:
 // - Groups collectives into "keys" = (collType, sizeBand, nNodes, nRanks)
 // - For each key, maintains a small set of candidate (algo, proto) arms
-// - Uses epsilon-greedy bandit selection per key
+// - Supports three selection strategies (set NCCL_TUNER_STRATEGY):
+//     "eps_greedy" (default) - epsilon-greedy with configurable epsilon
+//     "ucb1"                 - Upper Confidence Bound (UCB1)
+//     "thompson"             - Thompson Sampling (Normal model)
 // - Updates arm statistics when it sees new reward log entries for a key,
 //   attributing each latency to the arm last used for that key
 //
@@ -20,6 +23,10 @@
 //   If unset, defaults to /tmp/nccl_tuner_rewards_<commId>.log
 // - NCCL_TUNER_EPS (optional): epsilon for epsilon-greedy in [0,1].
 //   Default: 0.1
+// - NCCL_TUNER_STRATEGY (optional): "eps_greedy", "ucb1", or "thompson".
+//   Default: "eps_greedy"
+// - NCCL_TUNER_UCB_C (optional): exploration constant for UCB1.
+//   Default: 1.414 (sqrt(2))
 
 #include "tuner.h"
 
@@ -27,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 #include <time.h>
 #include <limits.h>
 
@@ -41,6 +49,13 @@
 // Bandit configuration limits
 #define MAX_KEYS   64
 #define MAX_ARMS    4
+
+// Selection strategy
+typedef enum {
+  STRATEGY_EPS_GREEDY = 0,
+  STRATEGY_UCB1       = 1,
+  STRATEGY_THOMPSON   = 2,
+} SelectionStrategy;
 
 typedef struct {
   ncclFunc_t collType;
@@ -70,6 +85,9 @@ typedef struct {
   char rewardFile[PATH_MAX];
   long rewardOffset;
   double epsilon;
+  double ucbC;               // exploration constant for UCB1
+  int totalPulls;            // total arm pulls across all keys (for UCB1)
+  SelectionStrategy strategy;
 
   size_t nRanks;
   size_t nNodes;
@@ -277,25 +295,14 @@ static void ingestRewards(TunerContext* ctx) {
   fclose(f);
 }
 
-// Epsilon-greedy arm selection for a given key.
-static int selectArm(TunerContext* ctx, BanditEntry* entry) {
-  if (entry->numArms == 0) return -1;
+// --- Arm selection strategies ---
 
-  // Explore any untried arms first.
-  for (int i = 0; i < entry->numArms; ++i) {
-    if (entry->arms[i].count == 0) {
-      return i;
-    }
-  }
-
+// Epsilon-greedy: with probability epsilon pick random, else pick best mean.
+static int selectArmEpsGreedy(TunerContext* ctx, BanditEntry* entry) {
   double r = (double)rand() / (double)RAND_MAX;
   if (r < ctx->epsilon) {
-    // Random exploration among all arms
-    int idx = rand() % entry->numArms;
-    return idx;
+    return rand() % entry->numArms;
   }
-
-  // Exploitation: choose arm with lowest mean latency.
   double bestMean = 0.0;
   int bestIdx = 0;
   for (int i = 0; i < entry->numArms; ++i) {
@@ -306,6 +313,68 @@ static int selectArm(TunerContext* ctx, BanditEntry* entry) {
     }
   }
   return bestIdx;
+}
+
+// UCB1 for minimisation: score_i = mean_i - c * sqrt(ln(T) / n_i).
+// Pick arm with lowest score (optimistic lower bound).
+static int selectArmUCB1(TunerContext* ctx, BanditEntry* entry) {
+  double lnT = log((double)(ctx->totalPulls > 0 ? ctx->totalPulls : 1));
+  double bestScore = 1e30;
+  int bestIdx = 0;
+  for (int i = 0; i < entry->numArms; ++i) {
+    int ni = entry->arms[i].count;
+    double mean_i = entry->arms[i].sumLatencyMs / (double)ni;
+    double score = mean_i - ctx->ucbC * sqrt(lnT / (double)ni);
+    if (score < bestScore) {
+      bestScore = score;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+// Box-Muller transform for standard normal sample (no external deps).
+static double randNormal(void) {
+  double u1 = ((double)rand() + 1.0) / ((double)RAND_MAX + 2.0);
+  double u2 = ((double)rand() + 1.0) / ((double)RAND_MAX + 2.0);
+  return sqrt(-2.0 * log(u1)) * cos(2.0 * 3.14159265358979323846 * u2);
+}
+
+// Thompson Sampling (Normal model) for minimisation:
+// Sample from N(mean_i, 1/n_i) per arm, pick lowest sample.
+static int selectArmThompson(TunerContext* ctx, BanditEntry* entry) {
+  (void)ctx;
+  double bestSample = 1e30;
+  int bestIdx = 0;
+  for (int i = 0; i < entry->numArms; ++i) {
+    int ni = entry->arms[i].count;
+    double mean_i = entry->arms[i].sumLatencyMs / (double)ni;
+    double scale = 1.0 / sqrt((double)ni);
+    double sample = mean_i + scale * randNormal();
+    if (sample < bestSample) {
+      bestSample = sample;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+// Dispatch to the configured strategy.
+static int selectArm(TunerContext* ctx, BanditEntry* entry) {
+  if (entry->numArms == 0) return -1;
+
+  // Always try untried arms first (common to all strategies).
+  for (int i = 0; i < entry->numArms; ++i) {
+    if (entry->arms[i].count == 0) {
+      return i;
+    }
+  }
+
+  switch (ctx->strategy) {
+    case STRATEGY_UCB1:     return selectArmUCB1(ctx, entry);
+    case STRATEGY_THOMPSON: return selectArmThompson(ctx, entry);
+    default:                return selectArmEpsGreedy(ctx, entry);
+  }
 }
 
 __hidden ncclResult_t pluginInit(void** context, uint64_t commId, size_t nRanks, size_t nNodes,
@@ -323,7 +392,18 @@ __hidden ncclResult_t pluginInit(void** context, uint64_t commId, size_t nRanks,
   ctx->nNodes = nNodes;
   ctx->logFunction = logFunction;
   ctx->rewardOffset = 0;
-  ctx->epsilon = 0.1; // default
+  ctx->totalPulls = 0;
+  ctx->epsilon = 0.1;         // default for eps_greedy
+  ctx->ucbC = 1.414;          // sqrt(2) default for UCB1
+  ctx->strategy = STRATEGY_EPS_GREEDY;
+
+  // Parse NCCL_TUNER_STRATEGY
+  const char* stratEnv = getenv("NCCL_TUNER_STRATEGY");
+  if (stratEnv) {
+    if (strcmp(stratEnv, "ucb1") == 0)          ctx->strategy = STRATEGY_UCB1;
+    else if (strcmp(stratEnv, "thompson") == 0)  ctx->strategy = STRATEGY_THOMPSON;
+    // else stays eps_greedy
+  }
 
   const char* epsEnv = getenv("NCCL_TUNER_EPS");
   if (epsEnv) {
@@ -331,6 +411,12 @@ __hidden ncclResult_t pluginInit(void** context, uint64_t commId, size_t nRanks,
     if (val >= 0.0 && val <= 1.0) {
       ctx->epsilon = val;
     }
+  }
+
+  const char* ucbEnv = getenv("NCCL_TUNER_UCB_C");
+  if (ucbEnv) {
+    double val = strtod(ucbEnv, NULL);
+    if (val > 0.0) ctx->ucbC = val;
   }
 
   const char* rewardEnv = getenv("NCCL_TUNER_REWARD_FILE");
@@ -347,10 +433,11 @@ __hidden ncclResult_t pluginInit(void** context, uint64_t commId, size_t nRanks,
   unsigned int seed = (unsigned int)time(NULL) ^ (unsigned int)(commId & 0xffffffffULL);
   srand(seed);
 
+  static const char* stratNames[] = {"eps_greedy", "ucb1", "thompson"};
   if (logFunction) {
     logFunction(NCCL_LOG_INFO, NCCL_TUNING, __FILE__, __LINE__,
-                "RL-TUNER: init for %zu nodes, %zu ranks, rewardFile=%s, epsilon=%.3f",
-                nNodes, nRanks, ctx->rewardFile, ctx->epsilon);
+                "RL-TUNER: init for %zu nodes, %zu ranks, strategy=%s, rewardFile=%s, epsilon=%.3f, ucbC=%.3f",
+                nNodes, nRanks, stratNames[ctx->strategy], ctx->rewardFile, ctx->epsilon, ctx->ucbC);
   }
 
   *context = ctx;
@@ -422,6 +509,7 @@ __hidden ncclResult_t pluginGetCollInfo(void* context, ncclFunc_t collType, size
   *nChannels = 1; // let NCCL adjust if desired; we only steer algo/proto
 
   entry->lastArmIdx = armIdx;
+  ctx->totalPulls++;
 
   if (ctx->logFunction) {
     double mean = (arm->count > 0) ? (arm->sumLatencyMs / (double)arm->count) : -1.0;

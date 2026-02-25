@@ -1,0 +1,27 @@
+[
+  {
+    "arm": "auto",
+    "count": 5,
+    "mean_ms": 12.534
+  },
+  {
+    "arm": "tree_simple",
+    "count": 2,
+    "mean_ms": 13.365
+  },
+  {
+    "arm": "tree_ll128",
+    "count": 1,
+    "mean_ms": 14.154
+  },
+  {
+    "arm": "ring_simple",
+    "count": 5,
+    "mean_ms": 12.545
+  },
+  {
+    "arm": "ring_ll128",
+    "count": 2,
+    "mean_ms": 13.554
+  }
+]

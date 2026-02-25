@@ -1,0 +1,92 @@
+[
+  {
+    "episode": 0,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 9.742
+  },
+  {
+    "episode": 1,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 9.884
+  },
+  {
+    "episode": 2,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.744
+  },
+  {
+    "episode": 3,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 9.868
+  },
+  {
+    "episode": 4,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 9.774
+  },
+  {
+    "episode": 5,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 9.72
+  },
+  {
+    "episode": 6,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.739
+  },
+  {
+    "episode": 7,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 9.738
+  },
+  {
+    "episode": 8,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 9.858
+  },
+  {
+    "episode": 9,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 9.887
+  },
+  {
+    "episode": 10,
+    "arm_idx": 0,
+    "arm_label": "auto",
+    "mean_ms": 9.725
+  },
+  {
+    "episode": 11,
+    "arm_idx": 2,
+    "arm_label": "tree_ll128",
+    "mean_ms": 9.723
+  },
+  {
+    "episode": 12,
+    "arm_idx": 4,
+    "arm_label": "ring_ll128",
+    "mean_ms": 9.734
+  },
+  {
+    "episode": 13,
+    "arm_idx": 3,
+    "arm_label": "ring_simple",
+    "mean_ms": 9.861
+  },
+  {
+    "episode": 14,
+    "arm_idx": 1,
+    "arm_label": "tree_simple",
+    "mean_ms": 9.84
+  }
+]
