@@ -2,9 +2,10 @@
 # Table of Contents
 
 1. [Running NCCL All-Reduce Benchmark with Modal](#running-nccl-all-reduce-benchmark-with-modal)
-2. [Running NCCL All-Reduce Benchmark on FarmShare](#running-nccl-all-reduce-benchmark-on-farmshare)
-3. [Plotting Results](#plotting-results)
-4. [Summary](#summary)
+2. [Running NCCL All-Reduce Benchmark on AWS (multi-node A100)](#running-nccl-all-reduce-benchmark-on-aws-multi-node-a100)
+3. [Running NCCL All-Reduce Benchmark on FarmShare](#running-nccl-all-reduce-benchmark-on-farmshare)
+4. [Plotting Results](#plotting-results)
+5. [Summary](#summary)
 
 # Running NCCL All-Reduce Benchmark with Modal
 
@@ -33,6 +34,125 @@ modal run run_modal.py --arch A100 --gpus 8
 - Runs the `all_reduce_perf` binary with the specified GPU architecture and count.
 - Captures the benchmark output and saves it to a file named `results_<arch>_<num_gpus>gpu_allreduce.txt` in the `results/` directory.
 - Prints the output for easy access and analysis.
+
+# Running NCCL All-Reduce Benchmark on AWS (multi-node A100)
+
+The `run_aws_multinode.py` script launches **2 (or N) EC2 A100 nodes**, runs the same NCCL all-reduce benchmark across them, **then terminates the instances** so you only pay for the run.
+
+## Setting up AWS (credentials + key pair)
+
+Do this once before running the script.
+
+### 1. AWS credentials (access key)
+
+You need an **access key ID** and **secret access key** for an IAM user that can launch/terminate EC2 instances.
+
+- **Create keys (if needed):** AWS Console → **IAM** → **Users** → your user → **Security credentials** → **Create access key** (use “Command Line Interface” and follow the steps). Download or copy the **Access key ID** and **Secret access key** (the secret is shown only once).
+
+Then configure them in **one** of these ways:
+
+**Option A – AWS CLI (recommended)**  
+Installs the CLI and stores credentials in `~/.aws/credentials`:
+
+```bash
+# Install AWS CLI if needed: https://aws.amazon.com/cli/
+pip install awscli   # or: brew install awscli
+
+aws configure
+# You will be prompted for:
+#   AWS Access Key ID: <paste your access key id>
+#   AWS Secret Access Key: <paste your secret key>
+#   Default region name: us-east-1   (or your preferred region)
+#   Default output format: json
+```
+
+**Option B – Environment variables**
+
+```bash
+export AWS_ACCESS_KEY_ID="AKIA..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_DEFAULT_REGION="us-east-1"   # optional; or use --region when running the script
+```
+
+Put these in `~/.bashrc`, `~/.zshrc`, or a small `env` file you source. **Never commit these values to git.**
+
+### 2. EC2 key pair (for SSH to instances)
+
+The script needs an **EC2 key pair** in the **same region** you use (e.g. `us-east-1`). The key is used so the script can SSH into the instances and run the benchmark.
+
+1. In AWS Console: **EC2** → **Key Pairs** (under “Network & Security”) → **Create key pair**.
+2. Name it (e.g. `cs244c-nccl`) and choose **.pem** (for use with `ssh`/`scp`). Download the `.pem` file.
+3. Move it somewhere safe and fix permissions:
+   ```bash
+   mv ~/Downloads/cs244c-nccl.pem ~/.ssh/
+   chmod 600 ~/.ssh/cs244c-nccl.pem
+   ```
+4. When running the script, use: `--key-name cs244c-nccl --private-key ~/.ssh/cs244c-nccl.pem`.
+
+### 3. Python dependency (use a mamba environment)
+
+From the repo root or `phase1-baseline/scripts`:
+
+```bash
+mamba env create -f phase1-baseline/scripts/environment.yml
+mamba activate aws-multinode
+```
+
+Then run the script from `phase1-baseline/scripts` (see Usage below).
+
+### 4. Verify
+
+```bash
+aws sts get-caller-identity
+```
+
+If that prints your account and user, credentials are set. Then run the script with your key name and private key path.
+
+## Prerequisites (summary)
+
+- **AWS credentials** configured (via `aws configure` or `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`).
+- An **EC2 key pair** in your target region; you need its **key name** and **path to the .pem file**.
+- **boto3**: use the `aws-multinode` mamba env (`mamba env create -f phase1-baseline/scripts/environment.yml`, then `mamba activate aws-multinode`)
+- **nccl-tests** submodule: `git submodule update --init --recursive` from the repo root.
+
+## Usage
+
+From this directory:
+
+```bash
+python run_aws_multinode.py --key-name YOUR_KEY_NAME --private-key ~/.ssh/YOUR_KEY.pem [options]
+```
+
+**Note to self from Ashley**
+I named mine `cs244c-aws-multinode-experiments-2-28.pem`
+So I just run:
+`python run_aws_multinode.py --key-name cs244c-aws-multinode-experiments-2-28 --private-key ~/.ssh/cs244c-aws-multinode-experiments-2-28.pem [options]`
+
+Options:
+
+- `--num-nodes` (default: 2): number of A100 nodes.
+- `--instance-type` (default: `p4d.24xlarge`): e.g. `p4d.24xlarge` (8× A100) or `g5.12xlarge` (4× A100).
+- `--region` (default: `us-east-1`): AWS region.
+- `--ami`: AMI ID (optional; script can look up the latest Deep Learning GPU Ubuntu 22.04 AMI).
+- `--no-terminate`: leave instances running after the run (for debugging); **terminate them manually** to avoid cost.
+- `--results-dir`: where to save the benchmark output (default: `results/aws-multinode/`).
+
+Example (2 nodes, 8 A100s each, then terminate):
+
+```bash
+python run_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2
+```
+
+## What it does
+
+1. **Launches** N EC2 instances (Deep Learning AMI, A100 instance type).
+2. **Waits** for instances to be running and SSH-ready.
+3. **Copies** the repo (including `nccl-tests`) to each node and **builds** nccl-tests with MPI.
+4. **Runs** `all_reduce_perf` across nodes via `mpirun` (same flags as Modal: `-b 8 -e 128M -f 2`).
+5. **Saves** results to `results/aws-multinode/results_<N>gpu_allreduce.txt`.
+6. **Terminates** all instances (unless `--no-terminate`).
+
+Instances are terminated as soon as the run finishes to minimize cost.
 
 # Running NCCL All-Reduce Benchmark on FarmShare
 
