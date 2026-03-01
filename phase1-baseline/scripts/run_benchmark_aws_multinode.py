@@ -1,0 +1,569 @@
+#!/usr/bin/env python3
+"""
+Run NCCL all-reduce benchmark on 2 (or N) AWS EC2 GPU nodes, then terminate instances.
+
+Works with A100 (p4d), A10G (g5), or T4 (g4dn). Use smaller instance types to minimize
+cost and vCPU quota (e.g. g5.xlarge = 1 GPU, 4 vCPUs per node).
+
+Flow:
+  1. Launch N EC2 instances with a Deep Learning AMI.
+  2. Wait for instances to be running and SSH-ready.
+  3. Copy cached build to nodes (from --build-dir or default build_cache). This script never builds on nodes.
+  4. Run all_reduce_perf for every (algorithm, protocol) combination (excluding LL/LL128 with
+     CollNet/NVLS) plus one AUTO run; save each run to a separate .txt in the results folder.
+  5. Terminate all instances to minimize cost.
+
+Requirements:
+  - AWS CLI configured (aws configure) or env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+  - An EC2 key pair in the target region; pass --key-name and --private-key (path to .pem).
+  - boto3: use the aws-multinode mamba env (mamba env create -f phase1-baseline/scripts/environment.yml, then mamba activate aws-multinode).
+
+Examples:
+  # Use cached build from run_build_aws_multinode.py, then benchmark (2 nodes):
+  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir phase1-baseline/scripts/build_cache/nccl-tests-mpi/build --num-nodes 2
+
+  # Using default cache (build_cache/nccl-tests-mpi/build):
+  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2
+
+  # 2 nodes × 1 T4 each (2 GPUs, 8 vCPUs):
+  python run_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --instance-type g4dn.xlarge --num-nodes 2
+
+  # A100 (requires higher vCPU quota):
+  python run_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --instance-type p4d.24xlarge --num-nodes 2
+"""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+try:
+    from botocore.exceptions import ClientError
+except ImportError:
+    ClientError = None  # type: ignore[misc, assignment]
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+# Cached nccl-tests build (MPI=1) from run_build_aws_multinode.py or run_build_aws_multinode_test.py.
+# Path: build_cache/nccl-tests-mpi/build/ (name indicates MPI-enabled); copied to nodes as .../nccl-tests/build.
+BUILD_CACHE_DIR = SCRIPT_DIR / "build_cache" / "nccl-tests-mpi" / "build"
+
+# GPUs per node for common AWS instance types (for hostfile slots and mpirun -N)
+GPUS_PER_INSTANCE_TYPE = {
+    # A100
+    "p4d.24xlarge": 8,
+    "p4de.24xlarge": 8,
+    "p5.48xlarge": 8,
+    # A10G (g5)
+    "g5.xlarge": 1,
+    "g5.2xlarge": 1,
+    "g5.4xlarge": 1,
+    "g5.8xlarge": 1,
+    "g5.12xlarge": 4,
+    "g5.16xlarge": 1,
+    "g5.24xlarge": 4,
+    "g5.48xlarge": 8,
+    # T4 (g4dn)
+    "g4dn.xlarge": 1,
+    "g4dn.2xlarge": 1,
+    "g4dn.4xlarge": 1,
+    "g4dn.8xlarge": 1,
+    "g4dn.12xlarge": 4,
+    "g4dn.16xlarge": 1,
+}
+
+# NCCL algorithms and protocols for all_reduce_perf (env vars NCCL_ALGO, NCCL_PROTO).
+# LL/LL128 are not used with CollNet/NVLS (see NCCL docs).
+NCCL_ALGORITHMS = ["Ring", "Tree", "CollnetChain", "CollnetDirect", "NVLS", "NVLSTree", "PAT"]
+NCCL_PROTOCOLS = ["Simple", "LL", "LL128"]
+# Algorithms for which LL/LL128 should be skipped (CollNet/NVLS family).
+ALGOS_NO_LL = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
+
+
+def get_benchmark_configs() -> list[tuple[str, dict[str, str] | None]]:
+    """Return (tag, env_additions) for each run. env_additions is None for AUTO (no overrides)."""
+    configs: list[tuple[str, dict[str, str] | None]] = []
+    for algo in NCCL_ALGORITHMS:
+        for proto in NCCL_PROTOCOLS:
+            if algo in ALGOS_NO_LL and proto in ("LL", "LL128"):
+                continue
+            tag = f"{algo}_{proto}".replace(" ", "").lower()
+            configs.append((tag, {"NCCL_ALGO": algo, "NCCL_PROTO": proto}))
+    configs.append(("auto", None))  # NCCL's automatic algorithm/protocol selection
+    return configs
+
+
+def get_latest_dlami_gpu_ubuntu(ec2, region: str) -> str:
+    """Find the latest AWS Deep Learning Base GPU AMI (Ubuntu 22.04) in the region."""
+    # DLAMI names vary; try common patterns (Amazon-owned)
+    for name_pattern in [
+        "*Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04)*",
+        "*Deep Learning Base GPU AMI (Ubuntu 22.04)*",
+        "*Deep Learning OSS Nvidia Driver GPU AMI (Ubuntu 22.04)*",
+    ]:
+        r = ec2.describe_images(
+            Owners=["amazon"],
+            Filters=[
+                {"Name": "state", "Values": ["available"]},
+                {"Name": "architecture", "Values": ["x86_64"]},
+                {"Name": "name", "Values": [name_pattern]},
+            ],
+        )
+        images = r.get("Images", [])
+        if images:
+            latest = max(images, key=lambda x: x["CreationDate"])
+            return latest["ImageId"]
+    raise RuntimeError(
+        f"No Deep Learning GPU Ubuntu 22.04 AMI found in {region}. "
+        "Specify an AMI explicitly with --ami (e.g. from EC2 Console → AMIs → search 'Deep Learning')."
+    )
+
+
+def get_ami_root_device(ec2, ami: str) -> str:
+    """Return the root device name for the AMI (e.g. /dev/sda1 or /dev/xvda)."""
+    r = ec2.describe_images(ImageIds=[ami])
+    if not r.get("Images"):
+        return "/dev/sda1"
+    root = r["Images"][0].get("RootDeviceName") or "/dev/sda1"
+    return root
+
+
+def launch_instances(
+    ec2,
+    *,
+    ami: str,
+    instance_type: str,
+    num_nodes: int,
+    key_name: str,
+    region: str,
+    security_group_id: str | None,
+    placement_group: str | None,
+) -> list[dict]:
+    """Launch num_nodes EC2 instances; return list of instance dicts with Id, PrivateIpAddress, etc."""
+    placement = {}
+    if placement_group:
+        placement["GroupName"] = placement_group
+
+    root_device = get_ami_root_device(ec2, ami)
+    # Root volume: ensure DeleteOnTermination so we don't leave EBS volumes (and cost) behind.
+    run_args = {
+        "ImageId": ami,
+        "InstanceType": instance_type,
+        "MinCount": num_nodes,
+        "MaxCount": num_nodes,
+        "KeyName": key_name,
+        "BlockDeviceMappings": [
+            {"DeviceName": root_device, "Ebs": {"DeleteOnTermination": True}},
+        ],
+        "TagSpecifications": [
+            {
+                "ResourceType": "instance",
+                "Tags": [
+                    {"Key": "Name", "Value": "cs244c-nccl-multinode"},
+                    {"Key": "Purpose", "Value": "NCCL benchmark"},
+                ],
+            }
+        ],
+    }
+    if placement:
+        run_args["Placement"] = placement
+    if security_group_id:
+        run_args["SecurityGroupIds"] = [security_group_id]
+
+    r = ec2.run_instances(**run_args)
+    ids = [inst["InstanceId"] for inst in r["Instances"]]
+    print(f"Launched instances: {ids}")
+    return ids
+
+
+def ensure_security_group(ec2, vpc_id: str | None, region: str) -> str:
+    """Create or reuse a security group that allows SSH and internal traffic for MPI."""
+    name = "cs244c-nccl-multinode-sg"
+    try:
+        existing = ec2.describe_security_groups(
+            Filters=[{"Name": "group-name", "Values": [name]}]
+        )
+        if existing["SecurityGroups"]:
+            sg_id = existing["SecurityGroups"][0]["GroupId"]
+            print(f"Using existing security group: {sg_id}")
+            return sg_id
+    except Exception:
+        pass
+
+    if not vpc_id:
+        vpcs = ec2.describe_vpcs(Filters=[{"Name": "isDefault", "Values": ["true"]}])
+        if not vpcs["Vpcs"]:
+            raise RuntimeError("No default VPC found; specify --vpc-id")
+        vpc_id = vpcs["Vpcs"][0]["VpcId"]
+
+    r = ec2.create_security_group(
+        GroupName=name,
+        Description="SSH + internal for NCCL multi-node",
+        VpcId=vpc_id,
+    )
+    sg_id = r["GroupId"]
+    ec2.authorize_security_group_ingress(
+        GroupId=sg_id,
+        IpPermissions=[
+            {"FromPort": 22, "ToPort": 22, "IpProtocol": "tcp", "IpRanges": [{"CidrIp": "0.0.0.0/0", "Description": "SSH"}]},
+            {"FromPort": 1, "ToPort": 65535, "IpProtocol": "tcp", "UserIdGroupPairs": [{"GroupId": sg_id}]},
+            {"FromPort": 1, "ToPort": 65535, "IpProtocol": "udp", "UserIdGroupPairs": [{"GroupId": sg_id}]},
+        ],
+    )
+    print(f"Created security group: {sg_id}")
+    return sg_id
+
+
+def get_volume_ids_for_instances(ec2, instance_ids: list[str]) -> list[str]:
+    """Return EBS volume IDs attached to the given instances (so we can delete them if orphaned)."""
+    if not instance_ids:
+        return []
+    try:
+        r = ec2.describe_instances(InstanceIds=instance_ids)
+    except Exception:
+        return []
+    volume_ids: list[str] = []
+    for res in r.get("Reservations", []):
+        for inst in res.get("Instances", []):
+            for bdm in inst.get("BlockDeviceMappings", []):
+                if "Ebs" in bdm and "VolumeId" in bdm["Ebs"]:
+                    volume_ids.append(bdm["Ebs"]["VolumeId"])
+    return volume_ids
+
+
+def delete_orphaned_volumes(ec2, volume_ids: list[str]) -> None:
+    """Delete volumes that are in 'available' state (left behind after instance termination)."""
+    if not volume_ids:
+        return
+    try:
+        r = ec2.describe_volumes(VolumeIds=volume_ids)
+    except Exception:
+        return
+    for vol in r.get("Volumes", []):
+        if vol.get("State") == "available":
+            try:
+                ec2.delete_volume(VolumeId=vol["VolumeId"])
+                print(f"Deleted orphaned volume: {vol['VolumeId']}")
+            except Exception as e:
+                if ClientError and isinstance(e, ClientError):
+                    if e.response.get("Error", {}).get("Code") != "InvalidVolume.NotFound":
+                        print(f"Failed to delete volume {vol['VolumeId']}: {e}", file=sys.stderr)
+                else:
+                    print(f"Failed to delete volume {vol['VolumeId']}: {e}", file=sys.stderr)
+
+
+def wait_for_instances(ec2, instance_ids: list[str], timeout_sec: int = 600) -> list[dict]:
+    """Wait until all instances are running and have private IPs; return instance info."""
+    start = time.time()
+    not_found_retries = 0
+    max_not_found_retries = 6  # ~1 min for eventual consistency after launch
+    while time.time() - start < timeout_sec:
+        try:
+            r = ec2.describe_instances(InstanceIds=instance_ids)
+        except Exception as e:
+            if ClientError and isinstance(e, ClientError):
+                err_code = e.response.get("Error", {}).get("Code", "")
+                if err_code == "InvalidInstanceID.NotFound":
+                    not_found_retries += 1
+                    if not_found_retries > max_not_found_retries:
+                        raise RuntimeError(
+                            f"Instance IDs not found after {max_not_found_retries} retries (instances may have been "
+                            f"terminated or wrong region): {instance_ids}"
+                        ) from e
+                    time.sleep(10)
+                    continue
+            raise
+        instances = []
+        for res in r["Reservations"]:
+            instances.extend(res["Instances"])
+        if len(instances) != len(instance_ids):
+            time.sleep(5)
+            continue
+        if all(i["State"]["Name"] == "running" for i in instances) and all(
+            i.get("PrivateIpAddress") for i in instances
+        ) and all(i.get("PublicIpAddress") for i in instances):
+            return instances
+        time.sleep(10)
+    raise RuntimeError(
+        f"Instances not ready within {timeout_sec}s (need running + private + public IPs): {instance_ids}"
+    )
+
+
+def wait_for_ssh(host: str, private_key_path: str, user: str = "ubuntu", timeout_sec: int = 300) -> None:
+    """Poll until SSH to host succeeds."""
+    start = time.time()
+    ssh_cmd = [
+        "ssh",
+        "-i", private_key_path,
+        "-o", "StrictHostKeyChecking=no",
+        "-o", "ConnectTimeout=5",
+        "-o", "BatchMode=yes",
+        f"{user}@{host}",
+        "echo", "ok",
+    ]
+    while time.time() - start < timeout_sec:
+        try:
+            subprocess.run(ssh_cmd, check=True, capture_output=True)
+            return
+        except subprocess.CalledProcessError:
+            time.sleep(5)
+    raise RuntimeError(f"SSH to {host} did not become ready within {timeout_sec}s")
+
+
+def scp_to_node(
+    local_path: Path,
+    remote_dir: str,
+    host: str,
+    private_key_path: str,
+    user: str = "ubuntu",
+) -> None:
+    """Copy local_path (file or dir) to host:remote_dir."""
+    local = str(local_path)
+    remote = f"{user}@{host}:{remote_dir}"
+    cmd = [
+        "scp", "-r", "-i", private_key_path,
+        "-o", "StrictHostKeyChecking=no",
+        local, remote,
+    ]
+    subprocess.run(cmd, check=True)
+
+
+def ssh_run_cmd(
+    host: str,
+    command: list[str] | str,
+    private_key_path: str,
+    user: str = "ubuntu",
+    check: bool = True,
+) -> subprocess.CompletedProcess:
+    args = ["ssh", "-i", private_key_path, "-o", "StrictHostKeyChecking=no", f"{user}@{host}"]
+    if isinstance(command, str):
+        args += ["bash", "-lc", command]
+    else:
+        args += command
+    result = subprocess.run(args, capture_output=True, text=True)
+    if check and result.returncode != 0:
+        print(result.stderr, file=sys.stderr)
+        raise RuntimeError(f"SSH command failed with exit code {result.returncode}")
+    return result
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run NCCL all-reduce on 2 (or N) AWS A100 nodes, then terminate instances."
+    )
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
+    parser.add_argument("--ami", default="", help="AMI ID; if not set, look up latest Deep Learning GPU Ubuntu 22.04")
+    parser.add_argument("--instance-type", default="g5.xlarge", help="Instance type (default: g5.xlarge = 1 A10G, 4 vCPUs; use p4d.24xlarge for 8x A100)")
+    parser.add_argument("--num-nodes", type=int, default=2, help="Number of nodes (default: 2)")
+    parser.add_argument("--key-name", required=True, help="EC2 key pair name (must exist in the region)")
+    parser.add_argument("--private-key", required=True, help="Path to the private key file (e.g. .pem) for SSH/SCP")
+    parser.add_argument("--vpc-id", default="", help="VPC ID for security group; default uses default VPC")
+    parser.add_argument("--placement-group", default="", help="Optional placement group for low latency")
+    parser.add_argument("--no-terminate", action="store_true", help="Do not terminate instances after run (for debugging)")
+    parser.add_argument("--results-dir", default=None, help="Directory to save results (default: phase1-baseline/scripts/results/aws-multinode)")
+    parser.add_argument(
+        "--build-dir",
+        default=None,
+        metavar="DIR",
+        help="Path to cached nccl-tests build (must contain all_reduce_perf_mpi). Default: script's build_cache/nccl-tests-mpi/build",
+    )
+    parser.add_argument("--auto-only", action="store_true", help="Run only the AUTO benchmark (sanity check; skip algo/proto combinations)")
+    args = parser.parse_args()
+
+    private_key_path = Path(args.private_key).expanduser().resolve()
+    if not private_key_path.is_file():
+        sys.exit(f"Private key not found: {private_key_path}")
+
+    try:
+        import boto3
+    except ImportError:
+        sys.exit(
+            "boto3 not found. Use the aws-multinode mamba env: "
+            "mamba env create -f phase1-baseline/scripts/environment.yml && mamba activate aws-multinode"
+        )
+
+    ec2 = boto3.client("ec2", region_name=args.region)
+    instance_ids: list[str] = []
+    security_group_id: str | None = None
+
+    try:
+        # Resolve AMI
+        ami = args.ami
+        if not ami:
+            print("Looking up latest Deep Learning GPU AMI (Ubuntu 22.04)...")
+            ami = get_latest_dlami_gpu_ubuntu(ec2, args.region)
+            print(f"Using AMI: {ami}")
+
+        vpc_id = args.vpc_id or None
+        security_group_id = ensure_security_group(ec2, vpc_id, args.region)
+        placement_group = args.placement_group or None
+
+        # Launch
+        instance_ids = launch_instances(
+            ec2,
+            ami=ami,
+            instance_type=args.instance_type,
+            num_nodes=args.num_nodes,
+            key_name=args.key_name,
+            region=args.region,
+            security_group_id=security_group_id,
+            placement_group=placement_group,
+        )
+
+        print("Waiting for instances to be running and have IPs...")
+        instances = wait_for_instances(ec2, instance_ids)
+        nodes = sorted(instances, key=lambda i: i["PrivateIpAddress"])
+        # Use public IPs for SSH/SCP from this machine (runner is outside the VPC).
+        public_ips = [n["PublicIpAddress"] for n in nodes]
+        # Use private IPs for hostfile so node-to-node traffic stays in-VPC.
+        private_ips = [n["PrivateIpAddress"] for n in nodes]
+        print(f"Instance public IPs (for SSH): {public_ips}")
+        print(f"Instance private IPs (for hostfile): {private_ips}")
+
+        for ip in public_ips:
+            print(f"Waiting for SSH on {ip}...")
+            wait_for_ssh(ip, str(private_key_path))
+
+        # Output directory for results and cluster specs (create once)
+        results_dir = Path(args.results_dir or SCRIPT_DIR / "results" / "aws-multinode")
+        results_dir.mkdir(parents=True, exist_ok=True)
+        cluster_specs_dir = results_dir / "cluster_specs"
+        cluster_specs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Collect topology and GPU specs from each node (nvidia-smi) into cluster_specs/
+        print("Collecting cluster topology and GPU specs...")
+        gpus_per_node = GPUS_PER_INSTANCE_TYPE.get(args.instance_type, 8)
+        total_gpus = args.num_nodes * gpus_per_node
+        hostfile_lines = [f"{ip} slots={gpus_per_node}" for ip in private_ips]
+        hostfile_content = "\n".join(hostfile_lines) + "\n"
+        topology_lines = [
+            "=== Cluster topology ===",
+            f"instance_type={args.instance_type}",
+            f"num_nodes={args.num_nodes}",
+            f"gpus_per_node={gpus_per_node}",
+            f"total_gpus={total_gpus}",
+            "",
+            "hostfile:",
+            hostfile_content,
+            "node_ips (private): " + ", ".join(private_ips),
+            "",
+        ]
+        for i, ip in enumerate(public_ips):
+            for label, cmd in [
+                ("nvidia_smi", "nvidia-smi"),
+                ("nvidia_smi_query", "nvidia-smi -q"),
+                ("nvidia_smi_topo", "nvidia-smi topo -m"),
+            ]:
+                result = ssh_run_cmd(ip, [cmd], str(private_key_path), check=False)
+                out = result.stdout or ""
+                if result.returncode != 0:
+                    out = f"(exit {result.returncode})\n{result.stderr or ''}\n{out}"
+                fname = cluster_specs_dir / f"node{i}_{ip}_{label}.txt"
+                fname.write_text(out)
+            # One-line summary for topology file
+            result = ssh_run_cmd(ip, ["nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader"], str(private_key_path), check=False)
+            summary = (result.stdout or "").strip() or "(nvidia-smi query failed)"
+            topology_lines.append(f"node{i} ({ip}): {summary}")
+        (cluster_specs_dir / "cluster_topology.txt").write_text("\n".join(topology_lines) + "\n")
+        print(f"Cluster topology and specs written to: {cluster_specs_dir}")
+
+        # Use cached build only (--build-dir or default BUILD_CACHE_DIR). This script never builds on nodes.
+        remote_repo = "/home/ubuntu/repo"
+        remote_nccl = f"{remote_repo}/nccl-tests"
+        build_dir = (Path(args.build_dir).expanduser().resolve() if args.build_dir else BUILD_CACHE_DIR)
+        if not build_dir.is_dir() or not (build_dir / "all_reduce_perf_mpi").is_file():
+            sys.exit(
+                f"No valid cached build: '{build_dir}' is missing or does not contain all_reduce_perf_mpi. "
+                "Run run_build_aws_multinode.py (or run_build_aws_multinode_test.py) and pass --build-dir to this script."
+            )
+        print(f"Using cached MPI build from {build_dir}")
+        remote_build = f"{remote_nccl}/build"
+        binary_name = "all_reduce_perf_mpi"
+        local_binary = build_dir / binary_name
+        for ip in public_ips:
+            # Pass as single-element list so SSH receives one command string (avoids "mkdir: missing operand")
+            ssh_run_cmd(ip, [f"mkdir -p {remote_build}"], str(private_key_path))
+            scp_to_node(local_binary, f"{remote_build}/", ip, str(private_key_path))
+
+        # Create hostfile on node0 (private_ips so node-to-node stays in-VPC)
+        node0_ip = public_ips[0]
+        ssh_run_cmd(node0_ip, [f"echo '{hostfile_content}' > /tmp/hostfile"], str(private_key_path))
+        # Allow node0 to SSH to node1 without prompt (keys already on both from launch)
+        ssh_run_cmd(node0_ip, ["mkdir -p ~/.ssh && chmod 700 ~/.ssh"], str(private_key_path))
+        # Copy private key to node0 so mpirun can SSH to other nodes
+        remote_key = "/home/ubuntu/.ssh/cs244c_key"
+        subprocess.run(
+            ["scp", "-i", str(private_key_path), "-o", "StrictHostKeyChecking=no", str(private_key_path), f"ubuntu@{node0_ip}:{remote_key}"],
+            check=True,
+            capture_output=True,
+        )
+        ssh_run_cmd(node0_ip, [f"chmod 600 {remote_key}"], str(private_key_path))
+
+        # Ensure OpenMPI is available on node0 (mpirun runs there). Non-interactive SSH often has minimal PATH.
+        print("Ensuring OpenMPI (mpirun) is installed on node0...")
+        ssh_run_cmd(node0_ip, ["sudo apt-get update -qq && sudo apt-get install -y openmpi-bin"], str(private_key_path), check=False)
+        # Use full path so we don't rely on PATH in non-login shell
+        mpirun_bin = "/usr/bin/mpirun"
+
+        # Run all_reduce_perf for every (algo, proto) combination + AUTO; save each to a .txt file.
+        # Same flags as run_modal.py: -b 8 -e 128M -f 2, -g 1 per process.
+        mpirun_prefix = (
+            "cd /home/ubuntu/repo/nccl-tests && "
+            "export CUDA_HOME=/usr/local/cuda NCCL_HOME=/usr && "
+            "export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH && "
+            f"{mpirun_bin} -np {total_gpus} -N {gpus_per_node} --hostfile /tmp/hostfile "
+            f'--mca plm_rsh_args "-i {remote_key} -o StrictHostKeyChecking=no" '
+            "--mca btl tcp,self --mca btl_tcp_if_include eth0 "
+        )
+        bench_args = "./build/all_reduce_perf_mpi -b 8 -e 128M -f 2 -g 1"
+        configs = [("auto", None)] if args.auto_only else get_benchmark_configs()
+        print(f"Running NCCL all_reduce_perf for {len(configs)} configs{' (AUTO only)' if args.auto_only else ' (algo/proto + AUTO)'}...")
+        for tag, env_additions in configs:
+            if env_additions is None:
+                # AUTO: do not set NCCL_ALGO / NCCL_PROTO
+                env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
+            else:
+                env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
+            run_cmd = env_exports + mpirun_prefix + bench_args
+            print(f"  [{tag}] ...")
+            result = ssh_run_cmd(node0_ip, [run_cmd], str(private_key_path), check=False)
+            stdout = result.stdout or ""
+            if result.returncode != 0:
+                print(f"    (non-zero exit {result.returncode}; saving output anyway)", file=sys.stderr)
+                if result.stderr:
+                    stdout = f"(stderr)\n{result.stderr}\n(stdout)\n{stdout}"
+            out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
+            out_file.write_text(stdout)
+            print(f"    -> {out_file.name}")
+        print(f"All results saved under: {results_dir}")
+
+    finally:
+        if instance_ids and not args.no_terminate:
+            # Collect volume IDs before terminating so we can delete any that don't auto-delete.
+            volume_ids = get_volume_ids_for_instances(ec2, instance_ids)
+            print("Terminating instances...")
+            try:
+                ec2.terminate_instances(InstanceIds=instance_ids)
+                print("Done. Instances terminated to avoid further cost.")
+                # Delete any EBS volumes that were left behind (e.g. DeleteOnTermination=False on AMI).
+                if volume_ids:
+                    time.sleep(5)
+                    delete_orphaned_volumes(ec2, volume_ids)
+            except Exception as e:
+                if ClientError and isinstance(e, ClientError):
+                    if e.response.get("Error", {}).get("Code") == "InvalidInstanceID.NotFound":
+                        print("Instances already gone (InvalidInstanceID.NotFound); skipping terminate.")
+                    else:
+                        print(f"Terminate failed: {e}", file=sys.stderr)
+                else:
+                    print(f"Terminate failed: {e}", file=sys.stderr)
+        elif instance_ids and args.no_terminate:
+            print("Left instances running (--no-terminate). Terminate manually to avoid cost:")
+            print("  aws ec2 terminate-instances --instance-ids", " ".join(instance_ids), "--region", args.region)
+
+
+if __name__ == "__main__":
+    main()
