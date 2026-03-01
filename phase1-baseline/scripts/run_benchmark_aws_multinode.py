@@ -22,6 +22,9 @@ Examples:
   # Use cached build from run_build_aws_multinode.py, then benchmark (2 nodes):
   python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir phase1-baseline/scripts/build_cache/nccl-tests-mpi/build --num-nodes 2
 
+  # Multinode with PyTorch backend (like Modal; avoids Open MPI/PMIx issues):
+  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --num-nodes 2 --multinode-backend torch --auto-only
+
   # Using default cache (build_cache/nccl-tests-mpi/build):
   python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2
 
@@ -35,6 +38,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import subprocess
 import sys
 import time
@@ -81,6 +85,62 @@ NCCL_ALGORITHMS = ["Ring", "Tree", "CollnetChain", "CollnetDirect", "NVLS", "NVL
 NCCL_PROTOCOLS = ["Simple", "LL", "LL128"]
 # Algorithms for which LL/LL128 should be skipped (CollNet/NVLS family).
 ALGOS_NO_LL = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
+
+# PyTorch all-reduce benchmark script (Modal-style: MASTER_ADDR/PORT, RANK, WORLD_SIZE).
+# Runs on each process; reads env and prints nccl-tests-like table from rank 0.
+TORCH_ALLREDUCE_BENCH_SCRIPT = r'''
+import os
+import sys
+import time
+import torch
+import torch.distributed as dist
+
+def main():
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ["WORLD_SIZE"])
+    master_addr = os.environ["MASTER_ADDR"]
+    master_port = os.environ["MASTER_PORT"]
+    local_rank = int(os.environ.get("LOCAL_RANK", rank))
+    torch.cuda.set_device(local_rank)
+    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size,
+                            init_method=f"env://")
+    device = torch.device(f"cuda:{local_rank}")
+    # Sizes like nccl-tests: 8 to 128M, factor 2
+    min_b, max_b = 8, 128 * 1024 * 1024
+    sizes = []
+    b = min_b
+    while b <= max_b:
+        sizes.append(b)
+        b *= 2
+    iters, warmup = 20, 1
+    lines = []
+    if rank == 0:
+        lines.append("# PyTorch NCCL all_reduce (env rendezvous, like Modal)")
+        lines.append(f"# world_size={world_size} minBytes={min_b} maxBytes={max_b}")
+        lines.append("# size(B)     time(us)   algbw(GB/s)  busbw(GB/s)")
+    for size in sizes:
+        n = size // 4  # float32
+        t = torch.randn(n, device=device, dtype=torch.float32) / world_size
+        for _ in range(warmup):
+            dist.all_reduce(t, op=dist.ReduceOp.SUM)
+        torch.cuda.synchronize()
+        start = time.perf_counter()
+        for _ in range(iters):
+            dist.all_reduce(t, op=dist.ReduceOp.SUM)
+        torch.cuda.synchronize()
+        elapsed_us = (time.perf_counter() - start) / iters * 1e6
+        algbw = size * 2.0 / (elapsed_us * 1e3)  # approximate
+        busbw = size * 2.0 * (world_size - 1) / world_size / (elapsed_us * 1e3)
+        if rank == 0:
+            lines.append(f"{size:12d} {elapsed_us:10.2f} {algbw:12.2f} {busbw:12.2f}")
+    dist.destroy_process_group()
+    if rank == 0:
+        print("\n".join(lines))
+        sys.stdout.flush()
+
+if __name__ == "__main__":
+    main()
+'''
 
 
 def get_benchmark_configs() -> list[tuple[str, dict[str, str] | None]]:
@@ -371,6 +431,12 @@ def main() -> None:
         help="Path to cached nccl-tests build (must contain all_reduce_perf_mpi). Default: script's build_cache/nccl-tests-mpi/build",
     )
     parser.add_argument("--auto-only", action="store_true", help="Run only the AUTO benchmark (sanity check; skip algo/proto combinations)")
+    parser.add_argument(
+        "--multinode-backend",
+        choices=("mpi", "torch"),
+        default="mpi",
+        help="Multinode launch: mpi=Open MPI mpirun (default); torch=PyTorch env rendezvous (like Modal, avoids PMIx)",
+    )
     args = parser.parse_args()
 
     private_key_path = Path(args.private_key).expanduser().resolve()
@@ -470,75 +536,132 @@ def main() -> None:
         (cluster_specs_dir / "cluster_topology.txt").write_text("\n".join(topology_lines) + "\n")
         print(f"Cluster topology and specs written to: {cluster_specs_dir}")
 
-        # Use cached build only (--build-dir or default BUILD_CACHE_DIR). This script never builds on nodes.
+        # Use cached build only when using MPI backend. Torch backend does not need nccl-tests binary.
         remote_repo = "/home/ubuntu/repo"
         remote_nccl = f"{remote_repo}/nccl-tests"
-        build_dir = (Path(args.build_dir).expanduser().resolve() if args.build_dir else BUILD_CACHE_DIR)
-        if not build_dir.is_dir() or not (build_dir / "all_reduce_perf_mpi").is_file():
-            sys.exit(
-                f"No valid cached build: '{build_dir}' is missing or does not contain all_reduce_perf_mpi. "
-                "Run run_build_aws_multinode.py (or run_build_aws_multinode_test.py) and pass --build-dir to this script."
-            )
-        print(f"Using cached MPI build from {build_dir}")
-        remote_build = f"{remote_nccl}/build"
-        binary_name = "all_reduce_perf_mpi"
-        local_binary = build_dir / binary_name
-        for ip in public_ips:
-            # Pass as single-element list so SSH receives one command string (avoids "mkdir: missing operand")
-            ssh_run_cmd(ip, [f"mkdir -p {remote_build}"], str(private_key_path))
-            scp_to_node(local_binary, f"{remote_build}/", ip, str(private_key_path))
+        if args.multinode_backend == "mpi":
+            build_dir = (Path(args.build_dir).expanduser().resolve() if args.build_dir else BUILD_CACHE_DIR)
+            if not build_dir.is_dir() or not (build_dir / "all_reduce_perf_mpi").is_file():
+                sys.exit(
+                    f"No valid cached build: '{build_dir}' is missing or does not contain all_reduce_perf_mpi. "
+                    "Run run_build_aws_multinode.py (or run_build_aws_multinode_test.py) and pass --build-dir to this script."
+                )
+            print(f"Using cached MPI build from {build_dir}")
+            remote_build = f"{remote_nccl}/build"
+            local_binary = build_dir / "all_reduce_perf_mpi"
+            for ip in public_ips:
+                ssh_run_cmd(ip, [f"mkdir -p {remote_build}"], str(private_key_path))
+                scp_to_node(local_binary, f"{remote_build}/", ip, str(private_key_path))
+        else:
+            # Torch backend: ensure nodes have repo dir for consistency (no binary needed)
+            for ip in public_ips:
+                ssh_run_cmd(ip, [f"mkdir -p {remote_repo}"], str(private_key_path))
 
-        # Create hostfile on node0 (private_ips so node-to-node stays in-VPC)
         node0_ip = public_ips[0]
-        ssh_run_cmd(node0_ip, [f"echo '{hostfile_content}' > /tmp/hostfile"], str(private_key_path))
-        # Allow node0 to SSH to node1 without prompt (keys already on both from launch)
-        ssh_run_cmd(node0_ip, ["mkdir -p ~/.ssh && chmod 700 ~/.ssh"], str(private_key_path))
-        # Copy private key to node0 so mpirun can SSH to other nodes
-        remote_key = "/home/ubuntu/.ssh/cs244c_key"
-        subprocess.run(
-            ["scp", "-i", str(private_key_path), "-o", "StrictHostKeyChecking=no", str(private_key_path), f"ubuntu@{node0_ip}:{remote_key}"],
-            check=True,
-            capture_output=True,
-        )
-        ssh_run_cmd(node0_ip, [f"chmod 600 {remote_key}"], str(private_key_path))
-
-        # Ensure OpenMPI is available on node0 (mpirun runs there). Non-interactive SSH often has minimal PATH.
-        print("Ensuring OpenMPI (mpirun) is installed on node0...")
-        ssh_run_cmd(node0_ip, ["sudo apt-get update -qq && sudo apt-get install -y openmpi-bin"], str(private_key_path), check=False)
-        # Use full path so we don't rely on PATH in non-login shell
-        mpirun_bin = "/usr/bin/mpirun"
-
-        # Run all_reduce_perf for every (algo, proto) combination + AUTO; save each to a .txt file.
-        # Same flags as run_modal.py: -b 8 -e 128M -f 2, -g 1 per process.
-        mpirun_prefix = (
-            "cd /home/ubuntu/repo/nccl-tests && "
-            "export CUDA_HOME=/usr/local/cuda NCCL_HOME=/usr && "
-            "export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH && "
-            f"{mpirun_bin} -np {total_gpus} -N {gpus_per_node} --hostfile /tmp/hostfile "
-            f'--mca plm_rsh_args "-i {remote_key} -o StrictHostKeyChecking=no" '
-            "--mca btl tcp,self --mca btl_tcp_if_include eth0 "
-        )
-        bench_args = "./build/all_reduce_perf_mpi -b 8 -e 128M -f 2 -g 1"
+        master_addr = private_ips[0]  # VPC private IP for rendezvous (like Modal's container_ips[0])
+        master_port = 29500
         configs = [("auto", None)] if args.auto_only else get_benchmark_configs()
-        print(f"Running NCCL all_reduce_perf for {len(configs)} configs{' (AUTO only)' if args.auto_only else ' (algo/proto + AUTO)'}...")
-        for tag, env_additions in configs:
-            if env_additions is None:
-                # AUTO: do not set NCCL_ALGO / NCCL_PROTO
-                env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
-            else:
-                env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
-            run_cmd = env_exports + mpirun_prefix + bench_args
-            print(f"  [{tag}] ...")
-            result = ssh_run_cmd(node0_ip, [run_cmd], str(private_key_path), check=False)
-            stdout = result.stdout or ""
-            if result.returncode != 0:
-                print(f"    (non-zero exit {result.returncode}; saving output anyway)", file=sys.stderr)
-                if result.stderr:
-                    stdout = f"(stderr)\n{result.stderr}\n(stdout)\n{stdout}"
-            out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
-            out_file.write_text(stdout)
-            print(f"    -> {out_file.name}")
-        print(f"All results saved under: {results_dir}")
+
+        if args.multinode_backend == "torch":
+            # Modal-style: PyTorch env rendezvous (MASTER_ADDR, RANK, WORLD_SIZE). No Open MPI / PMIx.
+            print("Using PyTorch multinode backend (MASTER_ADDR/RANK/WORLD_SIZE, like Modal)...")
+            print("Installing PyTorch on all nodes...")
+            for ip in public_ips:
+                ssh_run_cmd(ip, ["pip install --quiet torch"], str(private_key_path), check=False)
+            # Write benchmark script to each node
+            script_path = SCRIPT_DIR / ".torch_allreduce_bench.py"
+            script_path.write_text(TORCH_ALLREDUCE_BENCH_SCRIPT.strip())
+            for ip in public_ips:
+                scp_to_node(script_path, "/tmp/", ip, str(private_key_path))
+            script_path.unlink(missing_ok=True)
+            remote_script = "/tmp/.torch_allreduce_bench.py"
+            print(f"Running PyTorch NCCL all_reduce for {len(configs)} configs...")
+            for tag, env_additions in configs:
+                if env_additions is None:
+                    env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
+                else:
+                    env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
+                # Launch on node0: ranks 0..gpus_per_node-1
+                node0_cmd_parts = []
+                for i in range(gpus_per_node):
+                    node0_cmd_parts.append(
+                        f"(export {env_exports}RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                        f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 {remote_script})"
+                    )
+                node0_cmd = " & ".join(node0_cmd_parts) + "; wait"
+                # Launch on node1, node2, ...: ranks gpus_per_node, ...
+                def node_launch_cmd(node_idx: int) -> str:
+                    base_rank = node_idx * gpus_per_node
+                    parts = []
+                    for i in range(gpus_per_node):
+                        r = base_rank + i
+                        parts.append(
+                            f"(export {env_exports}RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                            f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 {remote_script})"
+                        )
+                    return " & ".join(parts) + "; wait"
+                # Run all nodes in parallel so processes can rendezvous
+                def run_ssh(ip: str, cmd: str):
+                    return ssh_run_cmd(ip, [cmd], str(private_key_path), check=False)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=args.num_nodes) as ex:
+                    futures = [ex.submit(run_ssh, public_ips[0], node0_cmd)]
+                    for ni in range(1, args.num_nodes):
+                        futures.append(ex.submit(run_ssh, public_ips[ni], node_launch_cmd(ni)))
+                    results = [f.result() for f in futures]
+                stdout = results[0].stdout or ""
+                if results[0].returncode != 0:
+                    print(f"    (non-zero exit {results[0].returncode}; saving output anyway)", file=sys.stderr)
+                    if results[0].stderr:
+                        stdout = f"(stderr)\n{results[0].stderr}\n(stdout)\n{stdout}"
+                out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
+                out_file.write_text(stdout)
+                print(f"  [{tag}] -> {out_file.name}")
+            print(f"All results saved under: {results_dir}")
+        else:
+            # MPI backend: hostfile, Open MPI, mpirun
+            ssh_run_cmd(node0_ip, [f"echo '{hostfile_content}' > /tmp/hostfile"], str(private_key_path))
+            ssh_run_cmd(node0_ip, ["mkdir -p ~/.ssh && chmod 700 ~/.ssh"], str(private_key_path))
+            remote_key = "/home/ubuntu/.ssh/cs244c_key"
+            subprocess.run(
+                ["scp", "-i", str(private_key_path), "-o", "StrictHostKeyChecking=no", str(private_key_path), f"ubuntu@{node0_ip}:{remote_key}"],
+                check=True,
+                capture_output=True,
+            )
+            ssh_run_cmd(node0_ip, [f"chmod 600 {remote_key}"], str(private_key_path))
+            print("Ensuring OpenMPI (mpirun/orted) is installed on all nodes...")
+            for ip in public_ips:
+                ssh_run_cmd(ip, ["sudo apt-get update -qq && sudo apt-get install -y openmpi-bin"], str(private_key_path), check=False)
+            mpirun_bin = "/usr/bin/mpirun"
+            vpc_cidr = "172.31.0.0/16"
+            mpirun_prefix = (
+                "cd /home/ubuntu/repo/nccl-tests && "
+                "export CUDA_HOME=/usr/local/cuda NCCL_HOME=/usr && "
+                "export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH && "
+                f"{mpirun_bin} -np {total_gpus} -N {gpus_per_node} --hostfile /tmp/hostfile "
+                "-x PMIX_MCA_gds=hash "
+                f'--mca plm_rsh_args "-i {remote_key} -o StrictHostKeyChecking=no" '
+                f"--mca btl tcp,self --mca btl_tcp_if_include {vpc_cidr} "
+                f"--mca oob tcp --mca oob_tcp_if_include {vpc_cidr} "
+            )
+            bench_args = "./build/all_reduce_perf_mpi -b 8 -e 128M -f 2 -g 1"
+            print(f"Running NCCL all_reduce_perf for {len(configs)} configs{' (AUTO only)' if args.auto_only else ' (algo/proto + AUTO)'}...")
+            for tag, env_additions in configs:
+                if env_additions is None:
+                    env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
+                else:
+                    env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
+                run_cmd = env_exports + mpirun_prefix + bench_args
+                print(f"  [{tag}] ...")
+                result = ssh_run_cmd(node0_ip, [run_cmd], str(private_key_path), check=False)
+                stdout = result.stdout or ""
+                if result.returncode != 0:
+                    print(f"    (non-zero exit {result.returncode}; saving output anyway)", file=sys.stderr)
+                    if result.stderr:
+                        stdout = f"(stderr)\n{result.stderr}\n(stdout)\n{stdout}"
+                out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
+                out_file.write_text(stdout)
+                print(f"    -> {out_file.name}")
+            print(f"All results saved under: {results_dir}")
 
     finally:
         if instance_ids and not args.no_terminate:
