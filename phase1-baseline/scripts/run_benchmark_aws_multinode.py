@@ -142,7 +142,8 @@ def main():
             print("\n".join(lines), flush=True)
     except Exception as e:
         import traceback
-        print(f"Rank {rank} failed: {e}", flush=True)
+        r = os.environ.get("RANK", "?")
+        print(f"Rank {r} failed: {e}", flush=True)
         traceback.print_exc()
         sys.exit(1)
 
@@ -650,7 +651,7 @@ def main() -> None:
                 node0_cmd_parts = []
                 for i in range(gpus_per_node):
                     node0_cmd_parts.append(
-                        f"(export {env_exports}PYTHONUNBUFFERED=1 RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                        f"({env_exports}export PYTHONUNBUFFERED=1 RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
                         f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                     )
                 node0_cmd = " & ".join(node0_cmd_parts) + "; wait"
@@ -661,7 +662,7 @@ def main() -> None:
                     for i in range(gpus_per_node):
                         r = base_rank + i
                         parts.append(
-                            f"(export {env_exports}PYTHONUNBUFFERED=1 RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                            f"({env_exports}export PYTHONUNBUFFERED=1 RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
                             f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                         )
                     return " & ".join(parts) + "; wait"
