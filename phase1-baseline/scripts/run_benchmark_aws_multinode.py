@@ -25,6 +25,9 @@ Examples:
   # Multinode with PyTorch backend (like Modal; avoids Open MPI/PMIx issues):
   python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --num-nodes 2 --multinode-backend torch --auto-only
 
+  # Use existing VMs (no launch/terminate; like run_build_aws_multinode_test.py):
+  python run_benchmark_aws_multinode.py --existing-ips 54.1.2.3,54.4.5.6 --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --multinode-backend torch --auto-only
+
   # Using default cache (build_cache/nccl-tests-mpi/build):
   python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2
 
@@ -96,47 +99,52 @@ import torch
 import torch.distributed as dist
 
 def main():
-    rank = int(os.environ["RANK"])
-    world_size = int(os.environ["WORLD_SIZE"])
-    master_addr = os.environ["MASTER_ADDR"]
-    master_port = os.environ["MASTER_PORT"]
-    local_rank = int(os.environ.get("LOCAL_RANK", rank))
-    torch.cuda.set_device(local_rank)
-    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size,
-                            init_method=f"env://")
-    device = torch.device(f"cuda:{local_rank}")
-    # Sizes like nccl-tests: 8 to 128M, factor 2
-    min_b, max_b = 8, 128 * 1024 * 1024
-    sizes = []
-    b = min_b
-    while b <= max_b:
-        sizes.append(b)
-        b *= 2
-    iters, warmup = 20, 1
-    lines = []
-    if rank == 0:
-        lines.append("# PyTorch NCCL all_reduce (env rendezvous, like Modal)")
-        lines.append(f"# world_size={world_size} minBytes={min_b} maxBytes={max_b}")
-        lines.append("# size(B)     time(us)   algbw(GB/s)  busbw(GB/s)")
-    for size in sizes:
-        n = size // 4  # float32
-        t = torch.randn(n, device=device, dtype=torch.float32) / world_size
-        for _ in range(warmup):
-            dist.all_reduce(t, op=dist.ReduceOp.SUM)
-        torch.cuda.synchronize()
-        start = time.perf_counter()
-        for _ in range(iters):
-            dist.all_reduce(t, op=dist.ReduceOp.SUM)
-        torch.cuda.synchronize()
-        elapsed_us = (time.perf_counter() - start) / iters * 1e6
-        algbw = size * 2.0 / (elapsed_us * 1e3)  # approximate
-        busbw = size * 2.0 * (world_size - 1) / world_size / (elapsed_us * 1e3)
+    try:
+        rank = int(os.environ["RANK"])
+        world_size = int(os.environ["WORLD_SIZE"])
+        master_addr = os.environ["MASTER_ADDR"]
+        master_port = os.environ["MASTER_PORT"]
+        local_rank = int(os.environ.get("LOCAL_RANK", rank))
+        torch.cuda.set_device(local_rank)
+        dist.init_process_group(backend="nccl", rank=rank, world_size=world_size,
+                                init_method=f"env://")
+        device = torch.device(f"cuda:{local_rank}")
+        # Sizes like nccl-tests: 8 to 128M, factor 2
+        min_b, max_b = 8, 128 * 1024 * 1024
+        sizes = []
+        b = min_b
+        while b <= max_b:
+            sizes.append(b)
+            b *= 2
+        iters, warmup = 20, 1
+        lines = []
         if rank == 0:
-            lines.append(f"{size:12d} {elapsed_us:10.2f} {algbw:12.2f} {busbw:12.2f}")
-    dist.destroy_process_group()
-    if rank == 0:
-        print("\n".join(lines))
-        sys.stdout.flush()
+            lines.append("# PyTorch NCCL all_reduce (env rendezvous, like Modal)")
+            lines.append(f"# world_size={world_size} minBytes={min_b} maxBytes={max_b}")
+            lines.append("# size(B)     time(us)   algbw(GB/s)  busbw(GB/s)")
+        for size in sizes:
+            n = size // 4  # float32
+            t = torch.randn(n, device=device, dtype=torch.float32) / world_size
+            for _ in range(warmup):
+                dist.all_reduce(t, op=dist.ReduceOp.SUM)
+            torch.cuda.synchronize()
+            start = time.perf_counter()
+            for _ in range(iters):
+                dist.all_reduce(t, op=dist.ReduceOp.SUM)
+            torch.cuda.synchronize()
+            elapsed_us = (time.perf_counter() - start) / iters * 1e6
+            algbw = size * 2.0 / (elapsed_us * 1e3)  # approximate
+            busbw = size * 2.0 * (world_size - 1) / world_size / (elapsed_us * 1e3)
+            if rank == 0:
+                lines.append(f"{size:12d} {elapsed_us:10.2f} {algbw:12.2f} {busbw:12.2f}")
+        dist.destroy_process_group()
+        if rank == 0:
+            print("\n".join(lines), flush=True)
+    except Exception as e:
+        import traceback
+        print(f"Rank {rank} failed: {e}", flush=True)
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
@@ -418,7 +426,25 @@ def main() -> None:
     parser.add_argument("--ami", default="", help="AMI ID; if not set, look up latest Deep Learning GPU Ubuntu 22.04")
     parser.add_argument("--instance-type", default="g5.xlarge", help="Instance type (default: g5.xlarge = 1 A10G, 4 vCPUs; use p4d.24xlarge for 8x A100)")
     parser.add_argument("--num-nodes", type=int, default=2, help="Number of nodes (default: 2)")
-    parser.add_argument("--key-name", required=True, help="EC2 key pair name (must exist in the region)")
+    parser.add_argument(
+        "--existing-ips",
+        metavar="IP1,IP2,...",
+        default=None,
+        help="Use existing VMs: comma-separated public IPs (skips launch/terminate; like run_build_aws_multinode_test.py)",
+    )
+    parser.add_argument(
+        "--private-ips",
+        metavar="IP1,IP2,...",
+        default=None,
+        help="With --existing-ips: comma-separated private IPs for hostfile (if omitted, discovered via SSH)",
+    )
+    parser.add_argument(
+        "--gpus-per-node",
+        type=int,
+        default=None,
+        help="With --existing-ips: GPUs per node (if omitted, discovered via nvidia-smi on first node)",
+    )
+    parser.add_argument("--key-name", default=None, help="EC2 key pair name (required when launching; not needed with --existing-ips)")
     parser.add_argument("--private-key", required=True, help="Path to the private key file (e.g. .pem) for SSH/SCP")
     parser.add_argument("--vpc-id", default="", help="VPC ID for security group; default uses default VPC")
     parser.add_argument("--placement-group", default="", help="Optional placement group for low latency")
@@ -443,72 +469,111 @@ def main() -> None:
     if not private_key_path.is_file():
         sys.exit(f"Private key not found: {private_key_path}")
 
-    try:
-        import boto3
-    except ImportError:
-        sys.exit(
-            "boto3 not found. Use the aws-multinode mamba env: "
-            "mamba env create -f phase1-baseline/scripts/environment.yml && mamba activate aws-multinode"
-        )
+    use_existing = bool(args.existing_ips)
+    if use_existing:
+        if not args.key_name:
+            pass  # key-name not needed when using existing IPs
+        public_ips = [x.strip() for x in args.existing_ips.split(",") if x.strip()]
+        if not public_ips:
+            sys.exit("--existing-ips must have at least one IP")
+        num_nodes = len(public_ips)
+    else:
+        if not args.key_name:
+            sys.exit("--key-name is required when launching instances")
+        try:
+            import boto3
+        except ImportError:
+            sys.exit(
+                "boto3 not found. Use the aws-multinode mamba env: "
+                "mamba env create -f phase1-baseline/scripts/environment.yml && mamba activate aws-multinode"
+            )
 
-    ec2 = boto3.client("ec2", region_name=args.region)
+    ec2 = None
     instance_ids: list[str] = []
     security_group_id: str | None = None
+    if not use_existing:
+        ec2 = __import__("boto3").client("ec2", region_name=args.region)
 
     try:
-        # Resolve AMI
-        ami = args.ami
-        if not ami:
-            print("Looking up latest Deep Learning GPU AMI (Ubuntu 22.04)...")
-            ami = get_latest_dlami_gpu_ubuntu(ec2, args.region)
-            print(f"Using AMI: {ami}")
-
-        vpc_id = args.vpc_id or None
-        security_group_id = ensure_security_group(ec2, vpc_id, args.region)
-        placement_group = args.placement_group or None
-
-        # Launch
-        instance_ids = launch_instances(
-            ec2,
-            ami=ami,
-            instance_type=args.instance_type,
-            num_nodes=args.num_nodes,
-            key_name=args.key_name,
-            region=args.region,
-            security_group_id=security_group_id,
-            placement_group=placement_group,
-        )
-
-        print("Waiting for instances to be running and have IPs...")
-        instances = wait_for_instances(ec2, instance_ids)
-        nodes = sorted(instances, key=lambda i: i["PrivateIpAddress"])
-        # Use public IPs for SSH/SCP from this machine (runner is outside the VPC).
-        public_ips = [n["PublicIpAddress"] for n in nodes]
-        # Use private IPs for hostfile so node-to-node traffic stays in-VPC.
-        private_ips = [n["PrivateIpAddress"] for n in nodes]
-        print(f"Instance public IPs (for SSH): {public_ips}")
-        print(f"Instance private IPs (for hostfile): {private_ips}")
-
-        for ip in public_ips:
-            print(f"Waiting for SSH on {ip}...")
-            wait_for_ssh(ip, str(private_key_path))
-
-        # Output directory for results and cluster specs (create once)
-        results_dir = Path(args.results_dir or SCRIPT_DIR / "results" / "aws-multinode")
-        results_dir.mkdir(parents=True, exist_ok=True)
-        cluster_specs_dir = results_dir / "cluster_specs"
-        cluster_specs_dir.mkdir(parents=True, exist_ok=True)
+        if use_existing:
+            # Use existing VMs: no launch/terminate (like run_build_aws_multinode_test.py)
+            print(f"Using existing IPs (no launch/terminate): {public_ips}")
+            for ip in public_ips:
+                print(f"Waiting for SSH on {ip}...")
+                wait_for_ssh(ip, str(private_key_path), timeout_sec=30)
+            if args.private_ips:
+                private_ips = [x.strip() for x in args.private_ips.split(",") if x.strip()]
+                if len(private_ips) != num_nodes:
+                    sys.exit(f"--private-ips must have {num_nodes} entries (one per --existing-ips)")
+            else:
+                print("Discovering private IPs via SSH...")
+                private_ips = []
+                for ip in public_ips:
+                    r = ssh_run_cmd(ip, ["hostname -I | awk '{print $1}'"], str(private_key_path), check=False)
+                    first = (r.stdout or "").strip().split()
+                    private_ips.append(first[0] if first else ip)
+            if args.gpus_per_node is not None:
+                gpus_per_node = args.gpus_per_node
+            else:
+                r = ssh_run_cmd(public_ips[0], ["nvidia-smi --query-gpu=name --format=csv,noheader"], str(private_key_path), check=False)
+                lines = [l for l in (r.stdout or "").strip().split("\n") if l.strip()]
+                gpus_per_node = len(lines) if r.returncode == 0 and lines else 1
+                print(f"Discovered {gpus_per_node} GPU(s) per node")
+            total_gpus = num_nodes * gpus_per_node
+            print(f"Instance public IPs (for SSH): {public_ips}")
+            print(f"Instance private IPs (for hostfile): {private_ips}")
+            results_dir = Path(args.results_dir or SCRIPT_DIR / "results" / "aws-multinode")
+            results_dir.mkdir(parents=True, exist_ok=True)
+            cluster_specs_dir = results_dir / "cluster_specs"
+            cluster_specs_dir.mkdir(parents=True, exist_ok=True)
+            instance_type_for_topology = "existing"
+        else:
+            # Resolve AMI and launch
+            ami = args.ami
+            if not ami:
+                print("Looking up latest Deep Learning GPU AMI (Ubuntu 22.04)...")
+                ami = get_latest_dlami_gpu_ubuntu(ec2, args.region)
+                print(f"Using AMI: {ami}")
+            vpc_id = args.vpc_id or None
+            security_group_id = ensure_security_group(ec2, vpc_id, args.region)
+            placement_group = args.placement_group or None
+            instance_ids = launch_instances(
+                ec2,
+                ami=ami,
+                instance_type=args.instance_type,
+                num_nodes=args.num_nodes,
+                key_name=args.key_name,
+                region=args.region,
+                security_group_id=security_group_id,
+                placement_group=placement_group,
+            )
+            print("Waiting for instances to be running and have IPs...")
+            instances = wait_for_instances(ec2, instance_ids)
+            nodes = sorted(instances, key=lambda i: i["PrivateIpAddress"])
+            public_ips = [n["PublicIpAddress"] for n in nodes]
+            private_ips = [n["PrivateIpAddress"] for n in nodes]
+            num_nodes = args.num_nodes
+            print(f"Instance public IPs (for SSH): {public_ips}")
+            print(f"Instance private IPs (for hostfile): {private_ips}")
+            for ip in public_ips:
+                print(f"Waiting for SSH on {ip}...")
+                wait_for_ssh(ip, str(private_key_path))
+            results_dir = Path(args.results_dir or SCRIPT_DIR / "results" / "aws-multinode")
+            results_dir.mkdir(parents=True, exist_ok=True)
+            cluster_specs_dir = results_dir / "cluster_specs"
+            cluster_specs_dir.mkdir(parents=True, exist_ok=True)
+            gpus_per_node = GPUS_PER_INSTANCE_TYPE.get(args.instance_type, 8)
+            total_gpus = num_nodes * gpus_per_node
+            instance_type_for_topology = args.instance_type
 
         # Collect topology and GPU specs from each node (nvidia-smi) into cluster_specs/
         print("Collecting cluster topology and GPU specs...")
-        gpus_per_node = GPUS_PER_INSTANCE_TYPE.get(args.instance_type, 8)
-        total_gpus = args.num_nodes * gpus_per_node
         hostfile_lines = [f"{ip} slots={gpus_per_node}" for ip in private_ips]
         hostfile_content = "\n".join(hostfile_lines) + "\n"
         topology_lines = [
             "=== Cluster topology ===",
-            f"instance_type={args.instance_type}",
-            f"num_nodes={args.num_nodes}",
+            f"instance_type={instance_type_for_topology}",
+            f"num_nodes={num_nodes}",
             f"gpus_per_node={gpus_per_node}",
             f"total_gpus={total_gpus}",
             "",
@@ -585,8 +650,8 @@ def main() -> None:
                 node0_cmd_parts = []
                 for i in range(gpus_per_node):
                     node0_cmd_parts.append(
-                        f"(export {env_exports}RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
-                        f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 {remote_script})"
+                        f"(export {env_exports}PYTHONUNBUFFERED=1 RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                        f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                     )
                 node0_cmd = " & ".join(node0_cmd_parts) + "; wait"
                 # Launch on node1, node2, ...: ranks gpus_per_node, ...
@@ -596,23 +661,27 @@ def main() -> None:
                     for i in range(gpus_per_node):
                         r = base_rank + i
                         parts.append(
-                            f"(export {env_exports}RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
-                            f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 {remote_script})"
+                            f"(export {env_exports}PYTHONUNBUFFERED=1 RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                            f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                         )
                     return " & ".join(parts) + "; wait"
                 # Run all nodes in parallel so processes can rendezvous
                 def run_ssh(ip: str, cmd: str):
                     return ssh_run_cmd(ip, [cmd], str(private_key_path), check=False)
-                with concurrent.futures.ThreadPoolExecutor(max_workers=args.num_nodes) as ex:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=num_nodes) as ex:
                     futures = [ex.submit(run_ssh, public_ips[0], node0_cmd)]
-                    for ni in range(1, args.num_nodes):
+                    for ni in range(1, num_nodes):
                         futures.append(ex.submit(run_ssh, public_ips[ni], node_launch_cmd(ni)))
                     results = [f.result() for f in futures]
                 stdout = results[0].stdout or ""
+                stderr = results[0].stderr or ""
                 if results[0].returncode != 0:
                     print(f"    (non-zero exit {results[0].returncode}; saving output anyway)", file=sys.stderr)
-                    if results[0].stderr:
-                        stdout = f"(stderr)\n{results[0].stderr}\n(stdout)\n{stdout}"
+                if stderr:
+                    stdout = stdout or "(no stdout)"
+                    stdout = f"(stderr)\n{stderr}\n(stdout)\n{stdout}"
+                if not stdout.strip():
+                    stdout = f"(no output from rank 0; exit={results[0].returncode})\n(stderr)\n{stderr}"
                 out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
                 out_file.write_text(stdout)
                 print(f"  [{tag}] -> {out_file.name}")
