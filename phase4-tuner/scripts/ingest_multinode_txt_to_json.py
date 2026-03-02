@@ -9,8 +9,8 @@ Supports two file formats:
   1. Modal / phase4 multinode: times_mn_{sequential|overlap}_{SIZE}_{config}.txt
      One float per line (iteration time in ms). Mode is in the filename.
 
-  2. AWS / normal NCCL benchmarks: results_{n}gpu_allreduce_{config}_sequential.txt
-     and results_{n}gpu_allreduce_{config}_overlap.txt
+  2. AWS / NCCL benchmarks: results_{n}gpu_allreduce_{config}_sequential.txt (and _overlap.txt),
+     or results_{n}gpu_allgather_{config}_sequential.txt (and _overlap.txt) for AllGather.
      Stdout table with "# size(B)  time(us)  ..." and data lines: size (bytes), time (us).
      One file per config per mode; the _sequential or _overlap suffix is required.
      AWS files without this suffix are ignored.
@@ -57,6 +57,7 @@ VALID_CONFIGS = {
     "ring_simple",
     "ring_ll",
     "ring_ll128",
+    "nvls_simple",  # AllGather with --include-nvls
 }
 
 # Map NCCL benchmark config names to our canonical keys (for AWS-style filenames).
@@ -76,9 +77,9 @@ BYTES_TO_SIZE_LABEL = {
 FILENAME_RE = re.compile(
     r"^times_mn_(sequential|overlap)_([0-9]+(?:KB|MB))_([a-zA-Z0-9_]+)\.txt$"
 )
-# Required (_sequential|_overlap) suffix: we expect two sets of files per config.
+# Required (_sequential|_overlap) suffix. Supports both allreduce and allgather result files.
 AWS_FILENAME_RE = re.compile(
-    r"^results_(\d+)gpu_allreduce_([a-zA-Z0-9_]+)(_sequential|_overlap)\.txt$"
+    r"^results_(\d+)gpu_(allreduce|allgather)_([a-zA-Z0-9_]+)(_sequential|_overlap)\.txt$"
 )
 
 
@@ -153,7 +154,7 @@ def ingest_multinode_txt(
 
     Supports:
       - Modal: times_mn_{sequential|overlap}_{SIZE}_{config}.txt (one median per file).
-      - AWS / NCCL benchmarks: results_{n}gpu_allreduce_{config}.txt (table of sizes × time_us).
+      - AWS / NCCL benchmarks: results_{n}gpu_allreduce_{config}.txt or results_{n}gpu_allgather_{config}.txt (table of sizes × time_us).
 
     Duplicate handling:
       - If merge_duplicates is False: first file found for a (mode, size, config) wins.
@@ -190,16 +191,16 @@ def ingest_multinode_txt(
         median_ms = parse_times_file(path)
         add_value(mode, size_label, cfg, median_ms)
 
-    # 2) AWS / NCCL benchmark format: results_*gpu_allreduce_*_sequential.txt and *_overlap.txt (two sets per config)
-    pattern_aws = "**/results_*gpu_allreduce_*.txt" if recursive else "results_*gpu_allreduce_*.txt"
+    # 2) AWS / NCCL benchmark format: results_*gpu_allreduce_* or results_*gpu_allgather_* with _sequential/_overlap suffix
+    pattern_aws = "**/results_*gpu_*.txt" if recursive else "results_*gpu_*.txt"
     for path in results_dir.glob(pattern_aws):
         if not path.is_file():
             continue
         m = AWS_FILENAME_RE.match(path.name)
         if not m:
             continue
-        cfg_raw = m.group(2)
-        suffix = m.group(3)  # _sequential or _overlap (required)
+        cfg_raw = m.group(3)  # config (e.g. auto, ring_simple); group 2 is collective (allreduce|allgather)
+        suffix = m.group(4)  # _sequential or _overlap (required)
         cfg = _normalize_config(cfg_raw)
         if cfg is None:
             continue
