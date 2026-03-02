@@ -17,31 +17,6 @@ Requirements:
   - AWS CLI configured (aws configure) or env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
   - An EC2 key pair in the target region; pass --key-name and --private-key (path to .pem).
   - boto3: use the aws-multinode mamba env (mamba env create -f phase1-baseline/scripts/environment.yml, then mamba activate aws-multinode).
-
-Examples:
-  # Use cached build from run_build_aws_multinode.py, then benchmark (2 nodes):
-  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir phase1-baseline/scripts/build_cache/nccl-tests-mpi/build --num-nodes 2
-
-  # Multinode with PyTorch backend (like Modal; avoids Open MPI/PMIx issues):
-  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --num-nodes 2 --multinode-backend torch --auto-only
-
-  # Sequential + overlap (writes _sequential and _overlap .txt files for ingest):
-  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2 --multinode-backend torch --mode both
-
-  # Overlap-only, leave instances running (no terminate; terminate manually to avoid cost):
-  python run_benchmark_aws_multinode.py --key-name cs244c-aws-multinode-experiments-2-28 --private-key ~/.ssh/cs244c-aws-multinode-experiments-2-28.pem --num-nodes 2 --multinode-backend torch --mode overlap --no-terminate
-
-  # Use existing VMs (no launch/terminate; like run_build_aws_multinode_test.py):
-  python run_benchmark_aws_multinode.py --existing-ips 54.1.2.3,54.4.5.6 --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --multinode-backend torch --auto-only
-
-  # Using default cache (build_cache/nccl-tests-mpi/build):
-  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2
-
-  # 2 nodes × 1 T4 each (2 GPUs, 8 vCPUs):
-  python run_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --instance-type g4dn.xlarge --num-nodes 2
-
-  # A100 (requires higher vCPU quota):
-  python run_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --instance-type p4d.24xlarge --num-nodes 2
 """
 
 from __future__ import annotations
@@ -125,7 +100,8 @@ def main():
             sizes.append(b)
             b *= 2
         iters, warmup = 20, 1
-        compute_mul = 4096  # matmul size for overlap (like Modal)
+        # Matmul size for overlap (default 1024 for driver compatibility). Override with env COMPUTE_MUL=2048 if desired.
+        compute_mul = int(os.environ.get("COMPUTE_MUL", "1024"))
         lines = []
         if rank == 0:
             mode_label = "overlap" if overlap else "sequential"
@@ -144,23 +120,27 @@ def main():
                     dist.all_reduce(t, op=dist.ReduceOp.SUM)
                 torch.cuda.synchronize()
             else:
-                compute_stream = torch.cuda.Stream(device=device)
+                # Overlap: run matmul on *default* stream to avoid CUBLAS_STATUS_INVALID_VALUE on
+                # custom streams (common on AWS GPUs/drivers). Comm runs on separate stream so we
+                # still get overlap. Small matmul (1024) for maximum driver compatibility.
+                torch.cuda.synchronize()
                 comm_stream = torch.cuda.Stream(device=device)
                 for _ in range(warmup):
-                    with torch.cuda.stream(compute_stream):
-                        a = torch.randn(compute_mul, compute_mul, device=device)
-                        b = torch.randn(compute_mul, compute_mul, device=device)
-                        torch.matmul(a, b)
+                    a = torch.randn(compute_mul, compute_mul, device=device, dtype=torch.float32)
+                    b = torch.randn(compute_mul, compute_mul, device=device, dtype=torch.float32)
+                    torch.matmul(a, b)  # default stream
+                    torch.cuda.synchronize()
                     with torch.cuda.stream(comm_stream):
                         tmp = t.clone()
                         dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
                     torch.cuda.synchronize()
                 start = time.perf_counter()
                 for _ in range(iters):
-                    with torch.cuda.stream(compute_stream):
-                        a = torch.randn(compute_mul, compute_mul, device=device)
-                        b = torch.randn(compute_mul, compute_mul, device=device)
-                        torch.matmul(a, b)
+                    # Default stream: compute (matmul)
+                    a = torch.randn(compute_mul, compute_mul, device=device, dtype=torch.float32)
+                    b = torch.randn(compute_mul, compute_mul, device=device, dtype=torch.float32)
+                    torch.matmul(a, b)
+                    # Comm stream: all_reduce (overlapped with matmul once both are in flight)
                     with torch.cuda.stream(comm_stream):
                         tmp = t.clone()
                         dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
