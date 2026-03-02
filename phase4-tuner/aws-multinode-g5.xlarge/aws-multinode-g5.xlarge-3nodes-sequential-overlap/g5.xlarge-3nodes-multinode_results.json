@@ -1,0 +1,76 @@
+{
+  "sequential": {
+    "256KB": {
+      "tree_ll128": 1.708,
+      "ring_ll128": 2.133,
+      "auto": 1.249,
+      "ring_simple": 1.29,
+      "tree_simple": 1.296
+    },
+    "1MB": {
+      "tree_ll128": 4.298,
+      "ring_ll128": 7.206,
+      "auto": 2.452,
+      "ring_simple": 2.521,
+      "tree_simple": 2.323
+    },
+    "4MB": {
+      "tree_ll128": 25.055,
+      "ring_ll128": 26.795,
+      "auto": 5.65,
+      "ring_simple": 5.997,
+      "tree_simple": 6.446
+    },
+    "16MB": {
+      "tree_ll128": 52.417,
+      "ring_ll128": 107.878,
+      "auto": 20.498,
+      "ring_simple": 21.429,
+      "tree_simple": 26.141
+    },
+    "64MB": {
+      "tree_ll128": 201.316,
+      "ring_ll128": 436.221,
+      "auto": 83.737,
+      "ring_simple": 83.1,
+      "tree_simple": 134.0
+    }
+  },
+  "overlap": {
+    "256KB": {
+      "ring_ll128": 1.53,
+      "auto": 1.464,
+      "ring_simple": 1.461,
+      "tree_simple": 1.434,
+      "tree_ll128": 1.858
+    },
+    "1MB": {
+      "ring_ll128": 2.433,
+      "auto": 2.714,
+      "ring_simple": 2.805,
+      "tree_simple": 2.595,
+      "tree_ll128": 5.025
+    },
+    "4MB": {
+      "ring_ll128": 7.462,
+      "auto": 6.695,
+      "ring_simple": 6.213,
+      "tree_simple": 6.859,
+      "tree_ll128": 25.003
+    },
+    "16MB": {
+      "ring_ll128": 26.121,
+      "auto": 21.582,
+      "ring_simple": 21.162,
+      "tree_simple": 26.823,
+      "tree_ll128": 52.274
+    },
+    "64MB": {
+      "ring_ll128": 119.253,
+      "auto": 84.358,
+      "ring_simple": 81.941,
+      "tree_simple": 137.514,
+      "tree_ll128": 203.386
+    }
+  }
+}

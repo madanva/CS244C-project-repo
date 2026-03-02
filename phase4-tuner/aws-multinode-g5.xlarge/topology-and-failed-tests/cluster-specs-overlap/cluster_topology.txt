@@ -1,0 +1,14 @@
+=== Cluster topology ===
+instance_type=existing
+num_nodes=2
+gpus_per_node=1
+total_gpus=2
+
+hostfile:
+172.31.42.138 slots=1
+172.31.47.20 slots=1
+
+node_ips (private): 172.31.42.138, 172.31.47.20
+
+node0 (54.198.5.250): NVIDIA A10G, 580.126.09, 23028 MiB
+node1 (52.54.176.114): NVIDIA A10G, 580.126.09, 23028 MiB
