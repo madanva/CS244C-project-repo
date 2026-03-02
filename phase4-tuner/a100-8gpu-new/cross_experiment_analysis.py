@@ -13,11 +13,6 @@ Generates:
   3. paper_figure3_auto_gap.png     — AUTO gap: sequential vs overlap side-by-side
   4. paper_figure4_mechanism.png    — SM contention mechanism (64MB deep dive)
   5. paper_table1.txt               — Main results table (LaTeX-ready)
-
-Data layout (--results-dir or default results/):
-  - overlap_experiment/overlap_experiment_results.json
-  - channel_experiment/channel_experiment_results.json
-  - multinode_experiment/multinode_results.json   (one file with keys "sequential" and "overlap")
 """
 
 import json
@@ -31,20 +26,11 @@ import matplotlib.patches as mpatches
 import numpy as np
 
 RESULTS_ROOT = Path(__file__).parent / "results"
+OVERLAP_FILE = RESULTS_ROOT / "overlap_experiment" / "overlap_experiment_results.json"
+CHANNEL_FILE = RESULTS_ROOT / "channel_experiment" / "channel_experiment_results.json"
+MULTINODE_FILE = RESULTS_ROOT / "multinode_experiment" / "multinode_results.json"
 OUTPUT_DIR = RESULTS_ROOT / "paper_figures"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# Multi-node plot/table title (GPU config); set from --multinode-title in main() (required for multinode outputs).
-MULTINODE_TITLE: str | None = None
-
-
-def _results_paths(root: Path):
-    """Paths to experiment JSONs under a results root. Multinode is one JSON with both sequential and overlap."""
-    return {
-        "overlap": root / "overlap_experiment" / "overlap_experiment_results.json",
-        "channel": root / "channel_experiment" / "channel_experiment_results.json",
-        "multinode": root / "multinode_experiment" / "multinode_results.json",
-    }
 
 SIZE_ORDER = ["32KB", "64KB", "256KB", "1MB", "2MB", "4MB", "16MB", "64MB", "256MB"]
 SIZE_BYTES = {
@@ -70,18 +56,10 @@ CONFIG_COLORS = {
 }
 
 
-def load_data(results_root: Path | None = None, multinode_json: Path | None = None):
-    """Load experiment JSONs. results_root: folder containing overlap_experiment/, channel_experiment/, multinode_experiment/. multinode_json: if set, use this file for multinode data instead of results_root/multinode_experiment/multinode_results.json."""
-    root = Path(results_root) if results_root is not None else RESULTS_ROOT
-    paths = _results_paths(root)
-    overlap = json.loads(paths["overlap"].read_text()) if paths["overlap"].exists() else {}
-    channel = json.loads(paths["channel"].read_text()) if paths["channel"].exists() else {}
-    # Multinode: one JSON with keys "sequential" and "overlap" (each size -> config -> time_ms).
-    if multinode_json is not None:
-        multinode_path = Path(multinode_json).resolve()
-        multinode = json.loads(multinode_path.read_text()) if multinode_path.exists() else {}
-    else:
-        multinode = json.loads(paths["multinode"].read_text()) if paths["multinode"].exists() else {}
+def load_data():
+    overlap = json.loads(OVERLAP_FILE.read_text()) if OVERLAP_FILE.exists() else {}
+    channel = json.loads(CHANNEL_FILE.read_text()) if CHANNEL_FILE.exists() else {}
+    multinode = json.loads(MULTINODE_FILE.read_text()) if MULTINODE_FILE.exists() else {}
     return overlap, channel, multinode
 
 
@@ -817,7 +795,8 @@ def paper_figure6(multinode_data):
     ax3.legend(fontsize=10)
     ax3.grid(axis="y", alpha=0.3)
 
-    plt.suptitle(f"Multi-Node AllReduce: Sequential & Overlap\n({MULTINODE_TITLE})",
+    plt.suptitle("Multi-Node AllReduce: NCCL AUTO Leaves Up to 57% on the Table\n"
+                 "(2 nodes × 4 A100 GPUs, inter-node network)",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure6_multinode.png"
@@ -863,7 +842,7 @@ def paper_figure7(overlap_data, multinode_data):
 
     ax1.bar(x - bar_w/2, sn_seq_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
             color="#3498db", alpha=0.85)
-    ax1.bar(x + bar_w/2, mn_seq_gaps, bar_w, label=f"Multi-Node ({MULTINODE_TITLE})",
+    ax1.bar(x + bar_w/2, mn_seq_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
             color="#e74c3c", alpha=0.85)
 
     # Annotate amplification factor
@@ -897,7 +876,7 @@ def paper_figure7(overlap_data, multinode_data):
 
     ax2.bar(x - bar_w/2, sn_ovl_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
             color="#3498db", alpha=0.85)
-    ax2.bar(x + bar_w/2, mn_ovl_gaps, bar_w, label=f"Multi-Node ({MULTINODE_TITLE})",
+    ax2.bar(x + bar_w/2, mn_ovl_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
             color="#e74c3c", alpha=0.85)
 
     for i in range(len(common_sizes)):
@@ -916,7 +895,8 @@ def paper_figure7(overlap_data, multinode_data):
     ax2.legend(fontsize=9)
     ax2.grid(axis="y", alpha=0.3)
 
-    plt.suptitle("AUTO Gap: Single-Node vs Multi-Node",
+    plt.suptitle("AUTO Gap Amplifies from Single-Node (1-5%) to Multi-Node (10-57%)\n"
+                 "Inter-node network makes config choice critical",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure7_sn_vs_mn.png"
@@ -1010,7 +990,8 @@ def paper_figure8(multinode_data):
              ha="center", fontsize=12, fontweight="bold", color="#c0392b",
              transform=ax2.get_xaxis_transform())
 
-    plt.suptitle(f"Multi-Node: Protocol Choice & Winner Flips\n({MULTINODE_TITLE})",
+    plt.suptitle("Multi-Node: Protocol Choice & Winner Flips\n"
+                 "(2 nodes × 4 A100 GPUs)",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure8_mn_flips.png"
@@ -1036,7 +1017,7 @@ def paper_table4(multinode_data):
     lines = []
     lines.append("")
     lines.append("=" * 120)
-    lines.append(f"  TABLE 4: Multi-Node Results (AllReduce, {MULTINODE_TITLE})")
+    lines.append("  TABLE 4: Multi-Node Results (AllReduce, 2×4 A100 GPUs, inter-node network)")
     lines.append("=" * 120)
     lines.append("")
     lines.append(f"  {'Size':<8s} | {'SEQ Best':>12s} {'SEQ ms':>10s} {'AUTO ms':>10s} {'Gap%':>7s} | "
@@ -1085,110 +1066,27 @@ def paper_table4(multinode_data):
 # ===================================================================
 # Main
 # ===================================================================
-FIGURES = {
-    1: ("paper_figure1", lambda od, cd, md: paper_figure1(od)),
-    2: ("paper_figure2", lambda od, cd, md: paper_figure2(cd)),
-    3: ("paper_figure3", lambda od, cd, md: paper_figure3(od, cd)),
-    4: ("paper_figure4", lambda od, cd, md: paper_figure4(cd)),
-    5: ("paper_figure5", lambda od, cd, md: paper_figure5(cd)),
-    6: ("paper_figure6", lambda od, cd, md: paper_figure6(md)),
-    7: ("paper_figure7", lambda od, cd, md: paper_figure7(od, md)),
-    8: ("paper_figure8", lambda od, cd, md: paper_figure8(md)),
-}
-TABLES = {
-    1: ("paper_table1", lambda od, cd, md: paper_table1(od, cd)),
-    4: ("paper_table4", lambda od, cd, md: paper_table4(md)),
-}
-
-
 def main():
-    import argparse
-    global OUTPUT_DIR, MULTINODE_TITLE
-    parser = argparse.ArgumentParser(
-        description="Generate paper figures and tables from experiment JSON results.",
-    )
-    parser.add_argument(
-        "--results-dir",
-        type=Path,
-        default=None,
-        metavar="DIR",
-        help="Folder containing experiment JSONs: overlap_experiment/, channel_experiment/, multinode_experiment/ (each with one JSON). Figures are written to DIR/paper_figures/. If not set, uses script's results/.",
-    )
-    parser.add_argument(
-        "--multinode-json",
-        type=Path,
-        default=None,
-        metavar="FILE",
-        help="Path to multinode_results.json (overrides multinode file from --results-dir). File must have keys 'sequential' and 'overlap'.",
-    )
-    parser.add_argument(
-        "--multinode-title",
-        type=str,
-        default=None,
-        metavar="TITLE",
-        help="Configuration string for multi-node plots/tables (e.g. '2 nodes × 1 A10G GPU (g5.xlarge), inter-node network'). Required when generating Figure 6, 7, 8, or Table 4.",
-    )
-    parser.add_argument(
-        "--figure",
-        type=int,
-        action="append",
-        metavar="N",
-        default=None,
-        help="Generate only figure N (e.g. --figure 6). Can be repeated (e.g. --figure 6 --figure 7). If not set, generate all figures and tables.",
-    )
-    parser.add_argument(
-        "--table",
-        type=int,
-        action="append",
-        metavar="N",
-        default=None,
-        help="Generate only table N (e.g. --table 4). Can be repeated. If --figure/--table not set, generate all.",
-    )
-    args = parser.parse_args()
-
-    figures_to_run = args.figure
-    tables_to_run = args.table
-    if figures_to_run is None and tables_to_run is None:
-        figures_to_run = list(FIGURES.keys())
-        tables_to_run = list(TABLES.keys())
-
-    multinode_outputs = {6, 7, 8}
-    if (multinode_outputs & set(figures_to_run or [])) or (4 in (tables_to_run or [])):
-        if not args.multinode_title:
-            parser.error("--multinode-title is required when generating Figure 6, 7, 8, or Table 4")
-        MULTINODE_TITLE = args.multinode_title
-    else:
-        MULTINODE_TITLE = ""  # unused when not generating multinode outputs
-
-    if args.results_dir is not None:
-        args.results_dir = args.results_dir.resolve()
-        OUTPUT_DIR = args.results_dir / "paper_figures"
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     print("Loading experimental data...")
-    multinode_json = args.multinode_json.resolve() if args.multinode_json is not None else None
-    overlap_data, channel_data, multinode_data = load_data(
-        results_root=args.results_dir,
-        multinode_json=multinode_json,
-    )
+    overlap_data, channel_data, multinode_data = load_data()
 
-    print("\nGenerating paper figures/tables...\n")
+    print("\nGenerating paper figures...\n")
 
-    for n in sorted(set(figures_to_run or [])):
-        if n not in FIGURES:
-            print(f"  Unknown figure {n}; skipping (valid: {list(FIGURES.keys())})")
-            continue
-        name, fn = FIGURES[n]
-        fn(overlap_data, channel_data, multinode_data)
+    # Single-node figures
+    paper_figure1(overlap_data)
+    paper_figure2(channel_data)
+    paper_figure3(overlap_data, channel_data)
+    paper_figure4(channel_data)
+    paper_figure5(channel_data)
+    paper_table1(overlap_data, channel_data)
 
-    for n in sorted(set(tables_to_run or [])):
-        if n not in TABLES:
-            print(f"  Unknown table {n}; skipping (valid: {list(TABLES.keys())})")
-            continue
-        name, fn = TABLES[n]
-        fn(overlap_data, channel_data, multinode_data)
+    # Multi-node figures
+    paper_figure6(multinode_data)
+    paper_figure7(overlap_data, multinode_data)
+    paper_figure8(multinode_data)
+    paper_table4(multinode_data)
 
-    print(f"\nOutputs saved to {OUTPUT_DIR}/")
+    print(f"\nAll outputs saved to {OUTPUT_DIR}/")
 
 
 if __name__ == "__main__":
