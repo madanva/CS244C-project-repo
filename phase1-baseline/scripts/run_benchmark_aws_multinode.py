@@ -25,6 +25,12 @@ Examples:
   # Multinode with PyTorch backend (like Modal; avoids Open MPI/PMIx issues):
   python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --num-nodes 2 --multinode-backend torch --auto-only
 
+  # Sequential + overlap (writes _sequential and _overlap .txt files for ingest):
+  python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 2 --multinode-backend torch --mode both
+
+  # Overlap-only, leave instances running (no terminate; terminate manually to avoid cost):
+  python run_benchmark_aws_multinode.py --key-name cs244c-aws-multinode-experiments-2-28 --private-key ~/.ssh/cs244c-aws-multinode-experiments-2-28.pem --num-nodes 2 --multinode-backend torch --mode overlap --no-terminate
+
   # Use existing VMs (no launch/terminate; like run_build_aws_multinode_test.py):
   python run_benchmark_aws_multinode.py --existing-ips 54.1.2.3,54.4.5.6 --private-key ~/.ssh/my-key.pem --build-dir build_cache/nccl-tests-mpi/build --multinode-backend torch --auto-only
 
@@ -91,6 +97,7 @@ ALGOS_NO_LL = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
 
 # PyTorch all-reduce benchmark script (Modal-style: MASTER_ADDR/PORT, RANK, WORLD_SIZE).
 # Runs on each process; reads env and prints nccl-tests-like table from rank 0.
+# Set OVERLAP_MODE=1 to overlap compute (matmul) with all_reduce; 0 or unset = sequential.
 TORCH_ALLREDUCE_BENCH_SCRIPT = r'''
 import os
 import sys
@@ -105,9 +112,10 @@ def main():
         master_addr = os.environ["MASTER_ADDR"]
         master_port = os.environ["MASTER_PORT"]
         local_rank = int(os.environ.get("LOCAL_RANK", rank))
+        overlap = os.environ.get("OVERLAP_MODE", "0") == "1"
         torch.cuda.set_device(local_rank)
         dist.init_process_group(backend="nccl", rank=rank, world_size=world_size,
-                                init_method=f"env://")
+                                init_method="env://")
         device = torch.device(f"cuda:{local_rank}")
         # Sizes like nccl-tests: 8 to 128M, factor 2
         min_b, max_b = 8, 128 * 1024 * 1024
@@ -117,21 +125,46 @@ def main():
             sizes.append(b)
             b *= 2
         iters, warmup = 20, 1
+        compute_mul = 4096  # matmul size for overlap (like Modal)
         lines = []
         if rank == 0:
+            mode_label = "overlap" if overlap else "sequential"
             lines.append("# PyTorch NCCL all_reduce (env rendezvous, like Modal)")
-            lines.append(f"# world_size={world_size} minBytes={min_b} maxBytes={max_b}")
+            lines.append(f"# world_size={world_size} minBytes={min_b} maxBytes={max_b} mode={mode_label}")
             lines.append("# size(B)     time(us)   algbw(GB/s)  busbw(GB/s)")
         for size in sizes:
             n = size // 4  # float32
             t = torch.randn(n, device=device, dtype=torch.float32) / world_size
-            for _ in range(warmup):
-                dist.all_reduce(t, op=dist.ReduceOp.SUM)
-            torch.cuda.synchronize()
-            start = time.perf_counter()
-            for _ in range(iters):
-                dist.all_reduce(t, op=dist.ReduceOp.SUM)
-            torch.cuda.synchronize()
+            if not overlap:
+                for _ in range(warmup):
+                    dist.all_reduce(t, op=dist.ReduceOp.SUM)
+                torch.cuda.synchronize()
+                start = time.perf_counter()
+                for _ in range(iters):
+                    dist.all_reduce(t, op=dist.ReduceOp.SUM)
+                torch.cuda.synchronize()
+            else:
+                compute_stream = torch.cuda.Stream(device=device)
+                comm_stream = torch.cuda.Stream(device=device)
+                for _ in range(warmup):
+                    with torch.cuda.stream(compute_stream):
+                        a = torch.randn(compute_mul, compute_mul, device=device)
+                        b = torch.randn(compute_mul, compute_mul, device=device)
+                        torch.matmul(a, b)
+                    with torch.cuda.stream(comm_stream):
+                        tmp = t.clone()
+                        dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
+                    torch.cuda.synchronize()
+                start = time.perf_counter()
+                for _ in range(iters):
+                    with torch.cuda.stream(compute_stream):
+                        a = torch.randn(compute_mul, compute_mul, device=device)
+                        b = torch.randn(compute_mul, compute_mul, device=device)
+                        torch.matmul(a, b)
+                    with torch.cuda.stream(comm_stream):
+                        tmp = t.clone()
+                        dist.all_reduce(tmp, op=dist.ReduceOp.SUM)
+                    torch.cuda.synchronize()
             elapsed_us = (time.perf_counter() - start) / iters * 1e6
             algbw = size * 2.0 / (elapsed_us * 1e3)  # approximate
             busbw = size * 2.0 * (world_size - 1) / world_size / (elapsed_us * 1e3)
@@ -464,6 +497,12 @@ def main() -> None:
         default="mpi",
         help="Multinode launch: mpi=Open MPI mpirun (default); torch=PyTorch env rendezvous (like Modal, avoids PMIx)",
     )
+    parser.add_argument(
+        "--mode",
+        choices=("sequential", "overlap", "both"),
+        default="sequential",
+        help="Torch backend only: sequential (no overlap), overlap (compute+comm overlapped), or both (default: sequential). MPI backend always runs sequential.",
+    )
     args = parser.parse_args()
 
     private_key_path = Path(args.private_key).expanduser().resolve()
@@ -630,7 +669,10 @@ def main() -> None:
 
         if args.multinode_backend == "torch":
             # Modal-style: PyTorch env rendezvous (MASTER_ADDR, RANK, WORLD_SIZE). No Open MPI / PMIx.
+            run_seq = args.mode in ("sequential", "both")
+            run_ovl = args.mode in ("overlap", "both")
             print("Using PyTorch multinode backend (MASTER_ADDR/RANK/WORLD_SIZE, like Modal)...")
+            print(f"Mode: {args.mode} (sequential={run_seq}, overlap={run_ovl})")
             print("Installing PyTorch on all nodes...")
             for ip in public_ips:
                 ssh_run_cmd(ip, ["pip install --quiet torch"], str(private_key_path), check=False)
@@ -641,34 +683,31 @@ def main() -> None:
                 scp_to_node(script_path, "/tmp/", ip, str(private_key_path))
             script_path.unlink(missing_ok=True)
             remote_script = "/tmp/.torch_allreduce_bench.py"
-            print(f"Running PyTorch NCCL all_reduce for {len(configs)} configs...")
-            for tag, env_additions in configs:
-                if env_additions is None:
-                    env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
-                else:
-                    env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
-                # Launch on node0: ranks 0..gpus_per_node-1
+
+            def run_one_config(tag: str, env_exports: str, overlap_mode: bool, out_suffix: str) -> None:
+                overlap_env = "export OVERLAP_MODE=1; " if overlap_mode else "export OVERLAP_MODE=0; "
                 node0_cmd_parts = []
                 for i in range(gpus_per_node):
                     node0_cmd_parts.append(
-                        f"({env_exports}export PYTHONUNBUFFERED=1 RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                        f"({env_exports}{overlap_env}export PYTHONUNBUFFERED=1 RANK={i} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
                         f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                     )
                 node0_cmd = " & ".join(node0_cmd_parts) + "; wait"
-                # Launch on node1, node2, ...: ranks gpus_per_node, ...
+
                 def node_launch_cmd(node_idx: int) -> str:
                     base_rank = node_idx * gpus_per_node
                     parts = []
                     for i in range(gpus_per_node):
                         r = base_rank + i
                         parts.append(
-                            f"({env_exports}export PYTHONUNBUFFERED=1 RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
+                            f"({env_exports}{overlap_env}export PYTHONUNBUFFERED=1 RANK={r} WORLD_SIZE={total_gpus} MASTER_ADDR={master_addr} "
                             f"MASTER_PORT={master_port} LOCAL_RANK={i}; python3 -u {remote_script})"
                         )
                     return " & ".join(parts) + "; wait"
-                # Run all nodes in parallel so processes can rendezvous
+
                 def run_ssh(ip: str, cmd: str):
                     return ssh_run_cmd(ip, [cmd], str(private_key_path), check=False)
+
                 with concurrent.futures.ThreadPoolExecutor(max_workers=num_nodes) as ex:
                     futures = [ex.submit(run_ssh, public_ips[0], node0_cmd)]
                     for ni in range(1, num_nodes):
@@ -683,9 +722,20 @@ def main() -> None:
                     stdout = f"(stderr)\n{stderr}\n(stdout)\n{stdout}"
                 if not stdout.strip():
                     stdout = f"(no output from rank 0; exit={results[0].returncode})\n(stderr)\n{stderr}"
-                out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}.txt"
+                out_file = results_dir / f"results_{total_gpus}gpu_allreduce_{tag}{out_suffix}.txt"
                 out_file.write_text(stdout)
-                print(f"  [{tag}] -> {out_file.name}")
+                print(f"  [{tag}{out_suffix}] -> {out_file.name}")
+
+            print(f"Running PyTorch NCCL all_reduce for {len(configs)} configs (mode={args.mode})...")
+            for tag, env_additions in configs:
+                if env_additions is None:
+                    env_exports = "unset NCCL_ALGO NCCL_PROTO 2>/dev/null; "
+                else:
+                    env_exports = " ".join(f"export {k}={v}; " for k, v in env_additions.items())
+                if run_seq:
+                    run_one_config(tag, env_exports, overlap_mode=False, out_suffix="_sequential" if run_ovl else "")
+                if run_ovl:
+                    run_one_config(tag, env_exports, overlap_mode=True, out_suffix="_overlap")
             print(f"All results saved under: {results_dir}")
         else:
             # MPI backend: hostfile, Open MPI, mpirun
