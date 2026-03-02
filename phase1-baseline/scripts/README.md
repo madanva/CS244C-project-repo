@@ -2,10 +2,9 @@
 # Table of Contents
 
 1. [Running NCCL All-Reduce Benchmark with Modal](#running-nccl-all-reduce-benchmark-with-modal)
-2. [Running NCCL All-Reduce Benchmark on AWS](#running-nccl-all-reduce-benchmark-on-aws)
-3. [Running NCCL All-Reduce Benchmark on FarmShare](#running-nccl-all-reduce-benchmark-on-farmshare)
-4. [Plotting Results](#plotting-results)
-5. [Summary](#summary)
+2. [Running NCCL All-Reduce Benchmark on FarmShare](#running-nccl-all-reduce-benchmark-on-farmshare)
+3. [Plotting Results](#plotting-results)
+4. [Summary](#summary)
 
 # Running NCCL All-Reduce Benchmark with Modal
 
@@ -34,71 +33,6 @@ modal run run_modal.py --arch A100 --gpus 8
 - Runs the `all_reduce_perf` binary with the specified GPU architecture and count.
 - Captures the benchmark output and saves it to a file named `results_<arch>_<num_gpus>gpu_allreduce.txt` in the `results/` directory.
 - Prints the output for easy access and analysis.
-
-# Running NCCL All-Reduce Benchmark on AWS
-
-`run_benchmark_aws_multinode.py` runs the NCCL all-reduce benchmark on N EC2 GPU nodes (launched by the script or via `--existing-ips`), then terminates any instances it launched.
-
-## AWS setup (one-time)
-
-1. **Credentials:** `aws configure` (Access Key ID, Secret Access Key, region e.g. `us-east-1`), or set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_DEFAULT_REGION`.
-2. **EC2 key pair:** AWS Console → EC2 → Key Pairs → Create key pair (.pem). Save the .pem (e.g. `~/.ssh/my-key.pem`) and run `chmod 600 ~/.ssh/my-key.pem`.
-3. **Env:** `mamba env create -f phase1-baseline/scripts/environment.yml && mamba activate aws-multinode` (for boto3). From repo root: `git submodule update --init --recursive`.
-
-Verify: `aws sts get-caller-identity`.
-
-## Usage
-
-From `phase1-baseline/scripts`:
-
-```bash
-python run_benchmark_aws_multinode.py --key-name YOUR_KEY --private-key ~/.ssh/YOUR_KEY.pem [options]
-```
-
-**All parameters**
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--region` | `us-east-1` | AWS region |
-| `--ami` | (lookup) | AMI ID; omit to use latest Deep Learning GPU Ubuntu 22.04 |
-| `--instance-type` | `g5.xlarge` | Instance type (e.g. `g5.xlarge` 1 GPU, `p4d.24xlarge` 8× A100) |
-| `--num-nodes` | `2` | Number of nodes. With `--existing-ips`: target total; extras launched if fewer IPs given |
-| `--existing-ips` | — | Comma-separated public IPs to reuse. If fewer than `--num-nodes`, script launches the rest |
-| `--private-ips` | (discover) | With `--existing-ips`: comma-separated private IPs (else discovered via SSH) |
-| `--gpus-per-node` | (discover) | With `--existing-ips`: GPUs per node (else from nvidia-smi on first node) |
-| `--key-name` | — | EC2 key pair name (required when launching; required with `--existing-ips` when launching extras) |
-| `--private-key` | **required** | Path to .pem for SSH/SCP |
-| `--vpc-id` | default VPC | VPC for security group |
-| `--placement-group` | — | Optional placement group |
-| `--no-terminate` | off | Leave launched instances running (terminate manually to avoid cost) |
-| `--results-dir` | `results/aws-multinode` | Where to save result .txt files |
-| `--build-dir` | `build_cache/nccl-tests-mpi/build` | Path to cached nccl-tests build (must contain `all_reduce_perf_mpi`) |
-| `--auto-only` | off | Run only AUTO benchmark |
-| `--multinode-backend` | `mpi` | `mpi` (Open MPI) or `torch` (PyTorch rendezvous) |
-| `--mode` | `sequential` | Torch only: `sequential`, `overlap`, or `both` |
-| `--skip-unsupported-algos` | off | Skip CollNet/NVLS/PAT (use on 2-node 1-GPU e.g. g5.xlarge to avoid failures) |
-
-**Examples**
-
-Launch 3 nodes, torch backend, both modes, skip unsupported algos, leave up:
-
-```bash
-python run_benchmark_aws_multinode.py --key-name my-key --private-key ~/.ssh/my-key.pem --num-nodes 3 --multinode-backend torch --mode both --skip-unsupported-algos --no-terminate
-```
-
-Use 3 existing IPs (no launch/terminate):
-
-```bash
-python run_benchmark_aws_multinode.py --existing-ips "IP1,IP2,IP3" --private-key ~/.ssh/my-key.pem --multinode-backend torch --mode both
-```
-
-Use 3 existing IPs but run on 5 nodes (script launches 2 more):
-
-```bash
-python run_benchmark_aws_multinode.py --existing-ips "IP1,IP2,IP3" --private-ips "P1,P2,P3" --num-nodes 5 --key-name my-key --private-key ~/.ssh/my-key.pem --multinode-backend torch
-```
-
-Results: `results_<N>gpu_allreduce_<config>_sequential.txt` and `_overlap.txt` (when using torch with overlap/both).
 
 # Running NCCL All-Reduce Benchmark on FarmShare
 
