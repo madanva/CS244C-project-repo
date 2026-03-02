@@ -3,6 +3,8 @@
     "256KB": {
       "ring_ll128": 1.797,
       "tree_ll128": 2.137,
+      "ring_ll": 2.235,
+      "tree_ll": 1.882,
       "auto": 1.878,
       "tree_simple": 1.584,
       "ring_simple": 1.878
@@ -10,6 +12,8 @@
     "1MB": {
       "ring_ll128": 3.518,
       "tree_ll128": 6.241,
+      "ring_ll": 8.723,
+      "tree_ll": 5.772,
       "auto": 2.806,
       "tree_simple": 2.904,
       "ring_simple": 3.14
@@ -17,6 +21,8 @@
     "4MB": {
       "ring_ll128": 7.34,
       "tree_ll128": 14.077,
+      "ring_ll": 34.892,
+      "tree_ll": 18.193,
       "auto": 7.422,
       "tree_simple": 8.48,
       "ring_simple": 7.061
@@ -24,6 +30,8 @@
     "16MB": {
       "ring_ll128": 30.19,
       "tree_ll128": 43.803,
+      "ring_ll": 135.813,
+      "tree_ll": 70.182,
       "auto": 23.924,
       "tree_simple": 44.177,
       "ring_simple": 24.002
@@ -31,6 +39,8 @@
     "64MB": {
       "ring_ll128": 117.732,
       "tree_ll128": 174.34,
+      "ring_ll": 555.758,
+      "tree_ll": 263.648,
       "auto": 92.548,
       "tree_simple": 188.74,
       "ring_simple": 92.305
@@ -39,37 +49,47 @@
   "overlap": {
     "256KB": {
       "tree_ll128": 2.402,
-      "ring_ll128": 2.445,
+      "ring_ll": 2.445,
       "ring_simple": 2.009,
       "auto": 2.095,
+      "ring_ll128": 2.097,
+      "tree_ll": 2.182,
       "tree_simple": 1.91
     },
     "1MB": {
       "tree_ll128": 6.173,
-      "ring_ll128": 8.648,
+      "ring_ll": 8.648,
       "ring_simple": 3.095,
       "auto": 3.336,
+      "ring_ll128": 3.426,
+      "tree_ll": 5.717,
       "tree_simple": 3.486
     },
     "4MB": {
       "tree_ll128": 13.955,
-      "ring_ll128": 34.167,
+      "ring_ll": 34.167,
       "ring_simple": 7.919,
       "auto": 7.677,
+      "ring_ll128": 8.053,
+      "tree_ll": 18.833,
       "tree_simple": 8.812
     },
     "16MB": {
       "tree_ll128": 46.329,
-      "ring_ll128": 136.687,
+      "ring_ll": 136.687,
       "ring_simple": 23.104,
       "auto": 23.822,
+      "ring_ll128": 31.887,
+      "tree_ll": 69.7,
       "tree_simple": 46.079
     },
     "64MB": {
       "tree_ll128": 149.635,
-      "ring_ll128": 547.771,
+      "ring_ll": 547.771,
       "ring_simple": 94.315,
       "auto": 92.694,
+      "ring_ll128": 129.717,
+      "tree_ll": 265.625,
       "tree_simple": 173.957
     }
   }
