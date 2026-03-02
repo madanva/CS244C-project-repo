@@ -34,6 +34,9 @@ RESULTS_ROOT = Path(__file__).parent / "results"
 OUTPUT_DIR = RESULTS_ROOT / "paper_figures"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# Multi-node plot/table title (GPU config); set from --multinode-title in main() (required for multinode outputs).
+MULTINODE_TITLE: str | None = None
+
 
 def _results_paths(root: Path):
     """Paths to experiment JSONs under a results root. Multinode is one JSON with both sequential and overlap."""
@@ -814,8 +817,7 @@ def paper_figure6(multinode_data):
     ax3.legend(fontsize=10)
     ax3.grid(axis="y", alpha=0.3)
 
-    plt.suptitle("Multi-Node AllReduce: NCCL AUTO Leaves Up to 57% on the Table\n"
-                 "(2 nodes × 4 A100 GPUs, inter-node network)",
+    plt.suptitle(f"Multi-Node AllReduce: Sequential & Overlap\n({MULTINODE_TITLE})",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure6_multinode.png"
@@ -861,7 +863,7 @@ def paper_figure7(overlap_data, multinode_data):
 
     ax1.bar(x - bar_w/2, sn_seq_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
             color="#3498db", alpha=0.85)
-    ax1.bar(x + bar_w/2, mn_seq_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
+    ax1.bar(x + bar_w/2, mn_seq_gaps, bar_w, label=f"Multi-Node ({MULTINODE_TITLE})",
             color="#e74c3c", alpha=0.85)
 
     # Annotate amplification factor
@@ -895,7 +897,7 @@ def paper_figure7(overlap_data, multinode_data):
 
     ax2.bar(x - bar_w/2, sn_ovl_gaps, bar_w, label="Single-Node (8×A100 NVLink)",
             color="#3498db", alpha=0.85)
-    ax2.bar(x + bar_w/2, mn_ovl_gaps, bar_w, label="Multi-Node (2×4 A100 Network)",
+    ax2.bar(x + bar_w/2, mn_ovl_gaps, bar_w, label=f"Multi-Node ({MULTINODE_TITLE})",
             color="#e74c3c", alpha=0.85)
 
     for i in range(len(common_sizes)):
@@ -914,8 +916,7 @@ def paper_figure7(overlap_data, multinode_data):
     ax2.legend(fontsize=9)
     ax2.grid(axis="y", alpha=0.3)
 
-    plt.suptitle("AUTO Gap Amplifies from Single-Node (1-5%) to Multi-Node (10-57%)\n"
-                 "Inter-node network makes config choice critical",
+    plt.suptitle("AUTO Gap: Single-Node vs Multi-Node",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure7_sn_vs_mn.png"
@@ -1009,8 +1010,7 @@ def paper_figure8(multinode_data):
              ha="center", fontsize=12, fontweight="bold", color="#c0392b",
              transform=ax2.get_xaxis_transform())
 
-    plt.suptitle("Multi-Node: Protocol Choice & Winner Flips\n"
-                 "(2 nodes × 4 A100 GPUs)",
+    plt.suptitle(f"Multi-Node: Protocol Choice & Winner Flips\n({MULTINODE_TITLE})",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure8_mn_flips.png"
@@ -1036,7 +1036,7 @@ def paper_table4(multinode_data):
     lines = []
     lines.append("")
     lines.append("=" * 120)
-    lines.append("  TABLE 4: Multi-Node Results (AllReduce, 2×4 A100 GPUs, inter-node network)")
+    lines.append(f"  TABLE 4: Multi-Node Results (AllReduce, {MULTINODE_TITLE})")
     lines.append("=" * 120)
     lines.append("")
     lines.append(f"  {'Size':<8s} | {'SEQ Best':>12s} {'SEQ ms':>10s} {'AUTO ms':>10s} {'Gap%':>7s} | "
@@ -1103,7 +1103,7 @@ TABLES = {
 
 def main():
     import argparse
-    global OUTPUT_DIR
+    global OUTPUT_DIR, MULTINODE_TITLE
     parser = argparse.ArgumentParser(
         description="Generate paper figures and tables from experiment JSON results.",
     )
@@ -1120,6 +1120,13 @@ def main():
         default=None,
         metavar="FILE",
         help="Path to multinode_results.json (overrides multinode file from --results-dir). File must have keys 'sequential' and 'overlap'.",
+    )
+    parser.add_argument(
+        "--multinode-title",
+        type=str,
+        default=None,
+        metavar="TITLE",
+        help="Configuration string for multi-node plots/tables (e.g. '2 nodes × 1 A10G GPU (g5.xlarge), inter-node network'). Required when generating Figure 6, 7, 8, or Table 4.",
     )
     parser.add_argument(
         "--figure",
@@ -1139,6 +1146,20 @@ def main():
     )
     args = parser.parse_args()
 
+    figures_to_run = args.figure
+    tables_to_run = args.table
+    if figures_to_run is None and tables_to_run is None:
+        figures_to_run = list(FIGURES.keys())
+        tables_to_run = list(TABLES.keys())
+
+    multinode_outputs = {6, 7, 8}
+    if (multinode_outputs & set(figures_to_run or [])) or (4 in (tables_to_run or [])):
+        if not args.multinode_title:
+            parser.error("--multinode-title is required when generating Figure 6, 7, 8, or Table 4")
+        MULTINODE_TITLE = args.multinode_title
+    else:
+        MULTINODE_TITLE = ""  # unused when not generating multinode outputs
+
     if args.results_dir is not None:
         args.results_dir = args.results_dir.resolve()
         OUTPUT_DIR = args.results_dir / "paper_figures"
@@ -1150,12 +1171,6 @@ def main():
         results_root=args.results_dir,
         multinode_json=multinode_json,
     )
-
-    figures_to_run = args.figure
-    tables_to_run = args.table
-    if figures_to_run is None and tables_to_run is None:
-        figures_to_run = list(FIGURES.keys())
-        tables_to_run = list(TABLES.keys())
 
     print("\nGenerating paper figures/tables...\n")
 
