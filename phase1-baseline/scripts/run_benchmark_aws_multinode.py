@@ -69,6 +69,9 @@ NCCL_ALGORITHMS = ["Ring", "Tree", "CollnetChain", "CollnetDirect", "NVLS", "NVL
 NCCL_PROTOCOLS = ["Simple", "LL", "LL128"]
 # Algorithms for which LL/LL128 should be skipped (CollNet/NVLS family).
 ALGOS_NO_LL = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
+# CollNet/NVLS often require NVLink or InfiniBand; they can fail with "no algorithm available" on
+# 2-node 1-GPU-per-node (e.g. g5.xlarge) over TCP. Use --skip-collnet-nvls to skip them.
+ALGOS_COLLNET_NVLS = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
 
 # PyTorch all-reduce benchmark script (Modal-style: MASTER_ADDR/PORT, RANK, WORLD_SIZE).
 # Runs on each process; reads env and prints nccl-tests-like table from rank 0.
@@ -165,10 +168,13 @@ if __name__ == "__main__":
 '''
 
 
-def get_benchmark_configs() -> list[tuple[str, dict[str, str] | None]]:
-    """Return (tag, env_additions) for each run. env_additions is None for AUTO (no overrides)."""
+def get_benchmark_configs(skip_collnet_nvls: bool = False) -> list[tuple[str, dict[str, str] | None]]:
+    """Return (tag, env_additions) for each run. env_additions is None for AUTO (no overrides).
+    If skip_collnet_nvls, omit CollNet/NVLS algorithms (they often fail on 2-node 1-GPU TCP)."""
     configs: list[tuple[str, dict[str, str] | None]] = []
     for algo in NCCL_ALGORITHMS:
+        if skip_collnet_nvls and algo in ALGOS_COLLNET_NVLS:
+            continue
         for proto in NCCL_PROTOCOLS:
             if algo in ALGOS_NO_LL and proto in ("LL", "LL128"):
                 continue
@@ -483,6 +489,11 @@ def main() -> None:
         default="sequential",
         help="Torch backend only: sequential (no overlap), overlap (compute+comm overlapped), or both (default: sequential). MPI backend always runs sequential.",
     )
+    parser.add_argument(
+        "--skip-collnet-nvls",
+        action="store_true",
+        help="Skip CollNet/NVLS algorithms (CollnetChain, CollnetDirect, NVLS, NVLSTree). Use on 2-node 1-GPU-per-node (e.g. g5.xlarge) to avoid NCCL 'no algorithm available' failures.",
+    )
     args = parser.parse_args()
 
     private_key_path = Path(args.private_key).expanduser().resolve()
@@ -645,7 +656,9 @@ def main() -> None:
         node0_ip = public_ips[0]
         master_addr = private_ips[0]  # VPC private IP for rendezvous (like Modal's container_ips[0])
         master_port = 29500
-        configs = [("auto", None)] if args.auto_only else get_benchmark_configs()
+        configs = [("auto", None)] if args.auto_only else get_benchmark_configs(skip_collnet_nvls=args.skip_collnet_nvls)
+        if args.skip_collnet_nvls and not args.auto_only:
+            print("Skipping CollNet/NVLS algorithms (--skip-collnet-nvls).")
 
         if args.multinode_backend == "torch":
             # Modal-style: PyTorch env rendezvous (MASTER_ADDR, RANK, WORLD_SIZE). No Open MPI / PMIx.
