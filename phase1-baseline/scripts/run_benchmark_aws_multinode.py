@@ -6,7 +6,8 @@ Works with A100 (p4d), A10G (g5), or T4 (g4dn). Use smaller instance types to mi
 cost and vCPU quota (e.g. g5.xlarge = 1 GPU, 4 vCPUs per node).
 
 Flow:
-  1. Launch N EC2 instances with a Deep Learning AMI.
+  1. Launch N EC2 instances with a Deep Learning AMI (or use --existing-ips to reuse nodes; if fewer
+     than --num-nodes, additional instances are launched; only newly launched instances are terminated).
   2. Wait for instances to be running and SSH-ready.
   3. Copy cached build to nodes (from --build-dir or default build_cache). This script never builds on nodes.
   4. Run all_reduce_perf for every (algorithm, protocol) combination (excluding LL/LL128 with
@@ -69,9 +70,9 @@ NCCL_ALGORITHMS = ["Ring", "Tree", "CollnetChain", "CollnetDirect", "NVLS", "NVL
 NCCL_PROTOCOLS = ["Simple", "LL", "LL128"]
 # Algorithms for which LL/LL128 should be skipped (CollNet/NVLS family).
 ALGOS_NO_LL = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
-# CollNet/NVLS often require NVLink or InfiniBand; they can fail with "no algorithm available" on
-# 2-node 1-GPU-per-node (e.g. g5.xlarge) over TCP. Use --skip-collnet-nvls to skip them.
-ALGOS_COLLNET_NVLS = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree"})
+# CollNet/NVLS/PAT often require NVLink or InfiniBand; they can fail with "no algorithm available" on
+# 2-node 1-GPU-per-node (e.g. g5.xlarge) over TCP. Use --skip-unsupported-algos to skip them.
+ALGOS_SKIP_UNSUPPORTED = frozenset({"CollnetChain", "CollnetDirect", "NVLS", "NVLSTree", "PAT"})
 
 # PyTorch all-reduce benchmark script (Modal-style: MASTER_ADDR/PORT, RANK, WORLD_SIZE).
 # Runs on each process; reads env and prints nccl-tests-like table from rank 0.
@@ -168,12 +169,12 @@ if __name__ == "__main__":
 '''
 
 
-def get_benchmark_configs(skip_collnet_nvls: bool = False) -> list[tuple[str, dict[str, str] | None]]:
+def get_benchmark_configs(skip_unsupported_algos: bool = False) -> list[tuple[str, dict[str, str] | None]]:
     """Return (tag, env_additions) for each run. env_additions is None for AUTO (no overrides).
-    If skip_collnet_nvls, omit CollNet/NVLS algorithms (they often fail on 2-node 1-GPU TCP)."""
+    If skip_unsupported_algos, omit CollNet/NVLS/PAT (they often fail on 2-node 1-GPU TCP)."""
     configs: list[tuple[str, dict[str, str] | None]] = []
     for algo in NCCL_ALGORITHMS:
-        if skip_collnet_nvls and algo in ALGOS_COLLNET_NVLS:
+        if skip_unsupported_algos and algo in ALGOS_SKIP_UNSUPPORTED:
             continue
         for proto in NCCL_PROTOCOLS:
             if algo in ALGOS_NO_LL and proto in ("LL", "LL128"):
@@ -445,12 +446,17 @@ def main() -> None:
     parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
     parser.add_argument("--ami", default="", help="AMI ID; if not set, look up latest Deep Learning GPU Ubuntu 22.04")
     parser.add_argument("--instance-type", default="g5.xlarge", help="Instance type (default: g5.xlarge = 1 A10G, 4 vCPUs; use p4d.24xlarge for 8x A100)")
-    parser.add_argument("--num-nodes", type=int, default=2, help="Number of nodes (default: 2)")
+    parser.add_argument(
+        "--num-nodes",
+        type=int,
+        default=2,
+        help="Number of nodes (default: 2). With --existing-ips: target total; if fewer existing IPs are given, additional instances are launched.",
+    )
     parser.add_argument(
         "--existing-ips",
         metavar="IP1,IP2,...",
         default=None,
-        help="Use existing VMs: comma-separated public IPs (skips launch/terminate; like run_build_aws_multinode_test.py)",
+        help="Use existing VMs: comma-separated public IPs. If fewer than --num-nodes, additional instances are launched (requires --key-name).",
     )
     parser.add_argument(
         "--private-ips",
@@ -464,7 +470,11 @@ def main() -> None:
         default=None,
         help="With --existing-ips: GPUs per node (if omitted, discovered via nvidia-smi on first node)",
     )
-    parser.add_argument("--key-name", default=None, help="EC2 key pair name (required when launching; not needed with --existing-ips)")
+    parser.add_argument(
+        "--key-name",
+        default=None,
+        help="EC2 key pair name (required when launching; required with --existing-ips when fewer IPs than --num-nodes to launch extras).",
+    )
     parser.add_argument("--private-key", required=True, help="Path to the private key file (e.g. .pem) for SSH/SCP")
     parser.add_argument("--vpc-id", default="", help="VPC ID for security group; default uses default VPC")
     parser.add_argument("--placement-group", default="", help="Optional placement group for low latency")
@@ -490,9 +500,9 @@ def main() -> None:
         help="Torch backend only: sequential (no overlap), overlap (compute+comm overlapped), or both (default: sequential). MPI backend always runs sequential.",
     )
     parser.add_argument(
-        "--skip-collnet-nvls",
+        "--skip-unsupported-algos",
         action="store_true",
-        help="Skip CollNet/NVLS algorithms (CollnetChain, CollnetDirect, NVLS, NVLSTree). Use on 2-node 1-GPU-per-node (e.g. g5.xlarge) to avoid NCCL 'no algorithm available' failures.",
+        help="Skip topology-sensitive algorithms (CollnetChain, CollnetDirect, NVLS, NVLSTree, PAT). Use on 2-node 1-GPU-per-node (e.g. g5.xlarge) to avoid NCCL 'no algorithm available' failures.",
     )
     args = parser.parse_args()
 
@@ -501,19 +511,27 @@ def main() -> None:
         sys.exit(f"Private key not found: {private_key_path}")
 
     use_existing = bool(args.existing_ips)
+    existing_public: list[str] = []
+    need_extra = 0  # when use_existing: how many additional nodes to launch
     if use_existing:
-        if not args.key_name:
-            pass  # key-name not needed when using existing IPs
-        public_ips = [x.strip() for x in args.existing_ips.split(",") if x.strip()]
-        if not public_ips:
+        existing_public = [x.strip() for x in args.existing_ips.split(",") if x.strip()]
+        if not existing_public:
             sys.exit("--existing-ips must have at least one IP")
-        num_nodes = len(public_ips)
+        num_nodes_target = args.num_nodes
+        if len(existing_public) > num_nodes_target:
+            existing_public = existing_public[:num_nodes_target]
+        need_extra = num_nodes_target - len(existing_public)
+        if need_extra > 0 and not args.key_name:
+            sys.exit(
+                "--key-name is required when --existing-ips has fewer IPs than --num-nodes (to launch additional instances)"
+            )
     else:
         if not args.key_name:
             sys.exit("--key-name is required when launching instances")
-        try:
-            import boto3
-        except ImportError:
+    try:
+        import boto3
+    except ImportError:
+        if not use_existing or need_extra > 0:
             sys.exit(
                 "boto3 not found. Use the aws-multinode mamba env: "
                 "mamba env create -f phase1-baseline/scripts/environment.yml && mamba activate aws-multinode"
@@ -522,12 +540,14 @@ def main() -> None:
     ec2 = None
     instance_ids: list[str] = []
     security_group_id: str | None = None
-    if not use_existing:
+    if not use_existing or need_extra > 0:
         ec2 = __import__("boto3").client("ec2", region_name=args.region)
 
     try:
-        if use_existing:
-            # Use existing VMs: no launch/terminate (like run_build_aws_multinode_test.py)
+        if use_existing and need_extra == 0:
+            # Use existing VMs only: no launch/terminate
+            public_ips = existing_public
+            num_nodes = len(public_ips)
             print(f"Using existing IPs (no launch/terminate): {public_ips}")
             for ip in public_ips:
                 print(f"Waiting for SSH on {ip}...")
@@ -558,6 +578,69 @@ def main() -> None:
             cluster_specs_dir = results_dir / "cluster_specs"
             cluster_specs_dir.mkdir(parents=True, exist_ok=True)
             instance_type_for_topology = "existing"
+        elif use_existing and need_extra > 0:
+            # Use existing IPs and launch additional nodes to reach --num-nodes
+            public_ips = list(existing_public)
+            num_existing = len(public_ips)
+            print(f"Using {num_existing} existing IPs; launching {need_extra} more to reach {args.num_nodes} nodes...")
+            for ip in public_ips:
+                print(f"Waiting for SSH on {ip}...")
+                wait_for_ssh(ip, str(private_key_path), timeout_sec=30)
+            if args.private_ips:
+                existing_private = [x.strip() for x in args.private_ips.split(",") if x.strip()]
+                if len(existing_private) != num_existing:
+                    sys.exit(f"--private-ips must have {num_existing} entries (one per --existing-ips)")
+            else:
+                print("Discovering private IPs via SSH (existing nodes)...")
+                existing_private = []
+                for ip in public_ips:
+                    r = ssh_run_cmd(ip, ["hostname -I | awk '{print $1}'"], str(private_key_path), check=False)
+                    first = (r.stdout or "").strip().split()
+                    existing_private.append(first[0] if first else ip)
+            if args.gpus_per_node is not None:
+                gpus_per_node = args.gpus_per_node
+            else:
+                r = ssh_run_cmd(public_ips[0], ["nvidia-smi --query-gpu=name --format=csv,noheader"], str(private_key_path), check=False)
+                lines = [l for l in (r.stdout or "").strip().split("\n") if l.strip()]
+                gpus_per_node = len(lines) if r.returncode == 0 and lines else 1
+                print(f"Discovered {gpus_per_node} GPU(s) per node (existing); launched nodes use --instance-type {args.instance_type}")
+            ami = args.ami
+            if not ami:
+                print("Looking up latest Deep Learning GPU AMI (Ubuntu 22.04) for additional nodes...")
+                ami = get_latest_dlami_gpu_ubuntu(ec2, args.region)
+                print(f"Using AMI: {ami}")
+            vpc_id = args.vpc_id or None
+            security_group_id = ensure_security_group(ec2, vpc_id, args.region)
+            placement_group = args.placement_group or None
+            instance_ids = launch_instances(
+                ec2,
+                ami=ami,
+                instance_type=args.instance_type,
+                num_nodes=need_extra,
+                key_name=args.key_name,
+                region=args.region,
+                security_group_id=security_group_id,
+                placement_group=placement_group,
+            )
+            print("Waiting for new instances to be running and have IPs...")
+            instances = wait_for_instances(ec2, instance_ids)
+            nodes = sorted(instances, key=lambda i: i["PrivateIpAddress"])
+            new_public = [n["PublicIpAddress"] for n in nodes]
+            new_private = [n["PrivateIpAddress"] for n in nodes]
+            public_ips = existing_public + new_public
+            private_ips = existing_private + new_private
+            num_nodes = args.num_nodes
+            print(f"Instance public IPs (for SSH): {public_ips}")
+            print(f"Instance private IPs (for hostfile): {private_ips}")
+            for ip in new_public:
+                print(f"Waiting for SSH on {ip}...")
+                wait_for_ssh(ip, str(private_key_path))
+            total_gpus = num_nodes * gpus_per_node
+            results_dir = Path(args.results_dir or SCRIPT_DIR / "results" / "aws-multinode")
+            results_dir.mkdir(parents=True, exist_ok=True)
+            cluster_specs_dir = results_dir / "cluster_specs"
+            cluster_specs_dir.mkdir(parents=True, exist_ok=True)
+            instance_type_for_topology = args.instance_type
         else:
             # Resolve AMI and launch
             ami = args.ami
@@ -656,9 +739,9 @@ def main() -> None:
         node0_ip = public_ips[0]
         master_addr = private_ips[0]  # VPC private IP for rendezvous (like Modal's container_ips[0])
         master_port = 29500
-        configs = [("auto", None)] if args.auto_only else get_benchmark_configs(skip_collnet_nvls=args.skip_collnet_nvls)
-        if args.skip_collnet_nvls and not args.auto_only:
-            print("Skipping CollNet/NVLS algorithms (--skip-collnet-nvls).")
+        configs = [("auto", None)] if args.auto_only else get_benchmark_configs(skip_unsupported_algos=args.skip_unsupported_algos)
+        if args.skip_unsupported_algos and not args.auto_only:
+            print("Skipping unsupported algorithms (CollNet/NVLS/PAT) (--skip-unsupported-algos).")
 
         if args.multinode_backend == "torch":
             # Modal-style: PyTorch env rendezvous (MASTER_ADDR, RANK, WORLD_SIZE). No Open MPI / PMIx.
