@@ -190,3 +190,4 @@ python plot_nccl_multi.py ../folder1 ../folder2 --output_dir multi_graphs --arch
 Output: Plots are written to `multi_graphs/` in this directory, with filenames and plot titles reflecting the input folders. It will generate a multi-line plot for latency and bandwidth.
 
 Note that in the folders you designate, it will grab the .txt file corresponding to the nccl-test output.
+
