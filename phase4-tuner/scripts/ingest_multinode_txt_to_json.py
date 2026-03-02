@@ -52,16 +52,16 @@ DEFAULT_OUTPUT = DEFAULT_RESULTS_DIR / "multinode_results.json"
 VALID_CONFIGS = {
     "auto",
     "tree_simple",
+    "tree_ll",
     "tree_ll128",
     "ring_simple",
+    "ring_ll",
     "ring_ll128",
 }
 
 # Map NCCL benchmark config names to our canonical keys (for AWS-style filenames).
-CONFIG_ALIASES = {
-    "tree_ll": "tree_ll128",
-    "ring_ll": "ring_ll128",
-}
+# tree_ll and ring_ll are kept distinct from tree_ll128 / ring_ll128 so figures can show both.
+CONFIG_ALIASES: dict[str, str] = {}
 
 # Figure 6 uses these sizes; map byte counts from benchmark output to labels.
 BYTES_TO_SIZE_LABEL = {

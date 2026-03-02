@@ -96,8 +96,8 @@ def main():
         dist.init_process_group(backend="nccl", rank=rank, world_size=world_size,
                                 init_method="env://")
         device = torch.device(f"cuda:{local_rank}")
-        # Sizes like nccl-tests: 8 to 128M, factor 2
-        min_b, max_b = 8, 128 * 1024 * 1024
+        # Sizes like nccl-tests: 8 to 256M, factor 2
+        min_b, max_b = 8, 256 * 1024 * 1024
         sizes = []
         b = min_b
         while b <= max_b:
@@ -839,7 +839,7 @@ def main() -> None:
                 f"--mca btl tcp,self --mca btl_tcp_if_include {vpc_cidr} "
                 f"--mca oob tcp --mca oob_tcp_if_include {vpc_cidr} "
             )
-            bench_args = "./build/all_reduce_perf_mpi -b 8 -e 128M -f 2 -g 1"
+            bench_args = "./build/all_reduce_perf_mpi -b 8 -e 256M -f 2 -g 1"
             print(f"Running NCCL all_reduce_perf for {len(configs)} configs{' (AUTO only)' if args.auto_only else ' (algo/proto + AUTO)'}...")
             for tag, env_additions in configs:
                 if env_additions is None:

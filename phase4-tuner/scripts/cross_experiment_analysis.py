@@ -56,16 +56,20 @@ SIZE_BYTES = {
 CONFIG_SHORT = {
     "auto": "AUTO",
     "tree_simple": "Tree+S",
-    "tree_ll128": "Tree+L",
+    "tree_ll": "Tree+LL",
+    "tree_ll128": "Tree+LL128",
     "ring_simple": "Ring+S",
-    "ring_ll128": "Ring+L",
+    "ring_ll": "Ring+LL",
+    "ring_ll128": "Ring+LL128",
 }
-CONFIGS = ["auto", "tree_simple", "tree_ll128", "ring_simple", "ring_ll128"]
+CONFIGS = ["auto", "tree_simple", "tree_ll", "tree_ll128", "ring_simple", "ring_ll", "ring_ll128"]
 CONFIG_COLORS = {
     "auto": "#555555",
     "tree_simple": "#e74c3c",
+    "tree_ll": "#2980b9",
     "tree_ll128": "#3498db",
     "ring_simple": "#2ecc71",
+    "ring_ll": "#d35400",
     "ring_ll128": "#f39c12",
 }
 
@@ -752,10 +756,10 @@ def paper_figure6(multinode_data):
     # Panel 1: All configs under Sequential
     ax1 = axes[0]
     x = np.arange(len(sizes))
-    width = 0.15
+    width = 0.11  # 7 configs (auto, tree_simple, tree_ll, tree_ll128, ring_simple, ring_ll, ring_ll128)
     for i, cfg in enumerate(CONFIGS):
         vals = [seq[s].get(cfg, 0) for s in sizes]
-        ax1.bar(x + (i - 2) * width, vals, width, label=CONFIG_SHORT[cfg],
+        ax1.bar(x + (i - 3) * width, vals, width, label=CONFIG_SHORT[cfg],
                 color=CONFIG_COLORS[cfg], edgecolor="white")
     ax1.set_xticks(x)
     ax1.set_xticklabels(sizes, fontsize=10)
@@ -770,7 +774,7 @@ def paper_figure6(multinode_data):
     ax2 = axes[1]
     for i, cfg in enumerate(CONFIGS):
         vals = [ovl[s].get(cfg, 0) for s in sizes]
-        ax2.bar(x + (i - 2) * width, vals, width, label=CONFIG_SHORT[cfg],
+        ax2.bar(x + (i - 3) * width, vals, width, label=CONFIG_SHORT[cfg],
                 color=CONFIG_COLORS[cfg], edgecolor="white")
     ax2.set_xticks(x)
     ax2.set_xticklabels(sizes, fontsize=10)
