@@ -1,0 +1,78 @@
+{
+  "sequential": {
+    "256KB": {
+      "auto": 2.389,
+      "ring_ll": 6.633,
+      "ring_simple": 2.312,
+      "ring_ll128": 2.317
+    },
+    "1MB": {
+      "auto": 4.985,
+      "ring_ll": 23.407,
+      "ring_simple": 4.875,
+      "ring_ll128": 5.269
+    },
+    "4MB": {
+      "auto": 16.618,
+      "ring_ll": 92.04,
+      "ring_simple": 16.992,
+      "ring_ll128": 20.807
+    },
+    "16MB": {
+      "auto": 64.76,
+      "ring_ll": 369.691,
+      "ring_simple": 63.4,
+      "ring_ll128": 83.923
+    },
+    "64MB": {
+      "auto": 257.815,
+      "ring_ll": 1478.815,
+      "ring_simple": 251.39,
+      "ring_ll128": 317.179
+    },
+    "256MB": {
+      "auto": 1040.366,
+      "ring_ll": 5992.95,
+      "ring_simple": 999.929,
+      "ring_ll128": 1274.696
+    }
+  },
+  "overlap": {
+    "256KB": {
+      "auto": 2.432,
+      "ring_simple": 2.507,
+      "ring_ll128": 2.545,
+      "ring_ll": 6.72
+    },
+    "1MB": {
+      "auto": 5.016,
+      "ring_simple": 5.315,
+      "ring_ll128": 5.395,
+      "ring_ll": 23.935
+    },
+    "4MB": {
+      "auto": 17.341,
+      "ring_simple": 17.122,
+      "ring_ll128": 20.609,
+      "ring_ll": 92.511
+    },
+    "16MB": {
+      "auto": 63.839,
+      "ring_simple": 63.351,
+      "ring_ll128": 81.045,
+      "ring_ll": 373.23
+    },
+    "64MB": {
+      "auto": 256.011,
+      "ring_simple": 248.095,
+      "ring_ll128": 322.138,
+      "ring_ll": 1502.156
+    },
+    "256MB": {
+      "auto": 1020.157,
+      "ring_simple": 992.362,
+      "ring_ll128": 1273.219,
+      "ring_ll": 6034.44
+    }
+  }
+}

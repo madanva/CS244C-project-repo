@@ -1,0 +1,34 @@
+(stderr)
+/home/ubuntu/.local/lib/python3.10/site-packages/torch/_subclasses/functional_tensor.py:283: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+
+(stdout)
+# PyTorch NCCL all_gather (env rendezvous, like Modal)
+# world_size=5 minBytes=8 maxBytes=268435456 mode=sequential
+# size(B)     time(us)   algbw(GB/s)  busbw(GB/s)
+           8     839.20         0.00         0.00
+          16     768.23         0.00         0.00
+          32     728.87         0.00         0.00
+          64     796.56         0.00         0.00
+         128     708.18         0.00         0.00
+         256     792.54         0.00         0.00
+         512     793.04         0.00         0.00
+        1024     752.75         0.00         0.01
+        2048     737.08         0.00         0.01
+        4096     803.79         0.00         0.02
+        8192     992.24         0.01         0.03
+       16384    1018.07         0.01         0.06
+       32768    1093.76         0.02         0.12
+       65536    1382.72         0.04         0.19
+      131072    1793.24         0.06         0.29
+      262144    2317.40         0.09         0.45
+      524288    3376.89         0.12         0.62
+     1048576    5269.14         0.16         0.80
+     2097152   10211.67         0.16         0.82
+     4194304   20806.87         0.16         0.81
+     8388608   41194.48         0.16         0.81
+    16777216   83922.92         0.16         0.80
+    33554432  164912.50         0.16         0.81
+    67108864  317179.38         0.17         0.85
+   134217728  635447.71         0.17         0.84
+   268435456 1274696.08         0.17         0.84
