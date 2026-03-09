@@ -1,0 +1,13 @@
+# Mamba/conda env for AWS multinode script (run_aws_multinode.py).
+# Create and activate:
+#   mamba env create -f phase1-baseline/scripts/environment.yml
+#   mamba activate aws-multinode
+# Then from phase1-baseline/scripts:
+#   python run_aws_multinode.py --key-name YOUR_KEY --private-key ~/.ssh/YOUR_KEY.pem --num-nodes 2
+name: aws-multinode
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - boto3

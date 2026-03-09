@@ -36,6 +36,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Multi-node plot/table title (GPU config); set from --multinode-title in main() (required for multinode outputs).
 MULTINODE_TITLE: str | None = None
+COLLECTIVE_NAME: str = "AllReduce"
 
 
 def _results_paths(root: Path):
@@ -821,7 +822,7 @@ def paper_figure6(multinode_data):
     ax3.legend(fontsize=10)
     ax3.grid(axis="y", alpha=0.3)
 
-    plt.suptitle(f"Multi-Node AllReduce: Sequential & Overlap\n({MULTINODE_TITLE})",
+    plt.suptitle(f"Multi-Node {COLLECTIVE_NAME}: Sequential & Overlap\n({MULTINODE_TITLE})",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure6_multinode.png"
@@ -1014,7 +1015,7 @@ def paper_figure8(multinode_data):
              ha="center", fontsize=12, fontweight="bold", color="#c0392b",
              transform=ax2.get_xaxis_transform())
 
-    plt.suptitle(f"Multi-Node: Protocol Choice & Winner Flips\n({MULTINODE_TITLE})",
+    plt.suptitle(f"Multi-Node {COLLECTIVE_NAME}: Protocol Choice & Winner Flips\n({MULTINODE_TITLE})",
                  fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
     out = OUTPUT_DIR / "paper_figure8_mn_flips.png"
@@ -1040,7 +1041,7 @@ def paper_table4(multinode_data):
     lines = []
     lines.append("")
     lines.append("=" * 120)
-    lines.append(f"  TABLE 4: Multi-Node Results (AllReduce, {MULTINODE_TITLE})")
+    lines.append(f"  TABLE 4: Multi-Node Results ({COLLECTIVE_NAME}, {MULTINODE_TITLE})")
     lines.append("=" * 120)
     lines.append("")
     lines.append(f"  {'Size':<8s} | {'SEQ Best':>12s} {'SEQ ms':>10s} {'AUTO ms':>10s} {'Gap%':>7s} | "
@@ -1107,7 +1108,7 @@ TABLES = {
 
 def main():
     import argparse
-    global OUTPUT_DIR, MULTINODE_TITLE
+    global OUTPUT_DIR, MULTINODE_TITLE, COLLECTIVE_NAME
     parser = argparse.ArgumentParser(
         description="Generate paper figures and tables from experiment JSON results.",
     )
@@ -1133,6 +1134,13 @@ def main():
         help="Configuration string for multi-node plots/tables (e.g. '2 nodes × 1 A10G GPU (g5.xlarge), inter-node network'). Required when generating Figure 6, 7, 8, or Table 4.",
     )
     parser.add_argument(
+        "--collective",
+        type=str,
+        default="AllReduce",
+        metavar="NAME",
+        help="Collective operation name for plot titles (e.g. 'AllReduce', 'AllGather'). Default: AllReduce.",
+    )
+    parser.add_argument(
         "--figure",
         type=int,
         action="append",
@@ -1149,6 +1157,8 @@ def main():
         help="Generate only table N (e.g. --table 4). Can be repeated. If --figure/--table not set, generate all.",
     )
     args = parser.parse_args()
+
+    COLLECTIVE_NAME = args.collective
 
     figures_to_run = args.figure
     tables_to_run = args.table

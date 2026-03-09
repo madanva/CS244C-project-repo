@@ -1,0 +1,59 @@
+{
+  "sequential": {},
+  "overlap": {
+    "8": {
+      "ring_simple": 7.741,
+      "ring_ll": 7.675,
+      "ring_ll128": 8.384,
+      "auto": 7.628
+    },
+    "1K": {
+      "ring_simple": 7.892,
+      "ring_ll": 7.656,
+      "ring_ll128": 7.812,
+      "auto": 8.179
+    },
+    "64K": {
+      "ring_simple": 8.992,
+      "ring_ll": 9.629,
+      "ring_ll128": 8.915,
+      "auto": 8.761
+    },
+    "256KB": {
+      "ring_simple": 11.437,
+      "ring_ll": 15.159,
+      "ring_ll128": 11.16,
+      "auto": 11.382
+    },
+    "1MB": {
+      "ring_simple": 28.932,
+      "ring_ll": 62.261,
+      "ring_ll128": 24.519,
+      "auto": 100.478
+    },
+    "4MB": {
+      "ring_simple": 344.872,
+      "ring_ll": 150.641,
+      "ring_ll128": 82.453,
+      "auto": 66.258
+    },
+    "16MB": {
+      "ring_simple": 396.38,
+      "ring_ll": 708.849,
+      "ring_ll128": 428.338,
+      "auto": 363.622
+    },
+    "64MB": {
+      "ring_simple": 1205.544,
+      "ring_ll": 2875.796,
+      "ring_ll128": 1479.635,
+      "auto": 1268.276
+    },
+    "256MB": {
+      "ring_simple": 4562.59,
+      "ring_ll": 10978.075,
+      "ring_ll128": 4864.433,
+      "auto": 4521.512
+    }
+  }
+}
