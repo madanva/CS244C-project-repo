@@ -1,0 +1,50 @@
+{
+  "2x4": {
+    "topology": "2x4",
+    "bandit_iters": 240,
+    "explore_rounds": 10,
+    "explore_iters": 40,
+    "results": {
+      "64MB": {
+        "auto": {
+          "median_all": 287.325,
+          "median_exploit": 287.325,
+          "mean_exploit": 252.516,
+          "std_exploit": 132.929,
+          "n_total": 240,
+          "n_exploit": 240
+        },
+        "bandit": {
+          "median_all": 178.537,
+          "median_exploit": 166.649,
+          "mean_exploit": 222.563,
+          "std_exploit": 119.156,
+          "n_total": 240,
+          "n_exploit": 200
+        },
+        "speedup_pct": 42.0,
+        "decision": "BANDIT"
+      },
+      "256MB": {
+        "auto": {
+          "median_all": 749.141,
+          "median_exploit": 749.141,
+          "mean_exploit": 805.343,
+          "std_exploit": 244.364,
+          "n_total": 240,
+          "n_exploit": 240
+        },
+        "bandit": {
+          "median_all": 752.446,
+          "median_exploit": 749.215,
+          "mean_exploit": 800.962,
+          "std_exploit": 260.432,
+          "n_total": 240,
+          "n_exploit": 200
+        },
+        "speedup_pct": -0.0,
+        "decision": "AUTO"
+      }
+    }
+  }
+}
