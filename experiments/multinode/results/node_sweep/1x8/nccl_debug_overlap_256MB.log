@@ -1,0 +1,146 @@
+modal:11274:11274 [0] NCCL INFO NCCL version 2.27.5+cuda12.9
+modal:11274:11372 [0] NCCL INFO   Algorithm   |                            Tree                  |                            Ring                  |                   CollNetDirect                  |
+modal:11274:11372 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:11274:11372 [0] NCCL INFO  Max NThreads |            512 |            640 |            512 |            512 |            640 |            512 |              0 |              0 |            640 |
+modal:11274:11372 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     7.2/  87.7 |    15.9/ 220.8 |    11.8/ 240.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     7.2/  87.7 |    15.9/ 220.8 |    11.8/ 240.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    10.8/ 100.2 |    27.3/ 252.3 |    32.2/ 274.3 |     5.6/   0.0 |     5.6/   0.0 |    44.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    10.8/ 100.2 |    27.3/ 252.3 |    32.2/ 274.3 |     5.6/   0.0 |     5.6/   0.0 |    44.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllReduce |    15.2/  29.1 |    31.5/  85.9 |    64.4/ 110.4 |    15.0/  50.1 |    40.6/ 126.2 |    56.0/ 137.1 |     5.6/   0.0 |     5.6/   0.0 |    44.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO   Algorithm   |                    CollNetChain                  |                            NVLS                  |                        NVLSTree                  |
+modal:11274:11372 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:11274:11372 [0] NCCL INFO  Max NThreads |              0 |              0 |            640 |              0 |              0 |            640 |              0 |              0 |            640 |
+modal:11274:11372 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllReduce |     0.0/   0.0 |     0.0/   0.0 |    69.2/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO   Algorithm   |                             PAT                  |
+modal:11274:11372 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:11274:11372 [0] NCCL INFO  Max NThreads |              0 |              0 |              0 |
+modal:11274:11372 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO     AllReduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:11274:11372 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so. Using internal tuner plugin.
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e26000000 recvbuff 0x2a8e26000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}
+modal:11274:11274 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2a8e08000000 recvbuff 0x2a8e08000000 count 67108864 datatype 7 op 0 root 0 comm 0x55d43d5de950 [nranks=8] stream 0x55d43a8d4e00
+modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}

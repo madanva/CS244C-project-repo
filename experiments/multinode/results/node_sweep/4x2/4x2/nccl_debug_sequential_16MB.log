@@ -1,0 +1,146 @@
+modal:941:941 [0] NCCL INFO NCCL version 2.27.5+cuda12.9
+modal:941:955 [0] NCCL INFO   Algorithm   |                            Tree                  |                            Ring                  |                   CollNetDirect                  |
+modal:941:955 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:941:955 [0] NCCL INFO  Max NThreads |            512 |            640 |            512 |            512 |            640 |            256 |              0 |              0 |            640 |
+modal:941:955 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     9.3/   0.6 |    18.0/   0.0 |    22.4/   1.2 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     9.3/   0.6 |    18.0/   0.0 |    22.4/   1.2 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    18.7/   0.7 |    33.6/   0.0 |    64.0/   1.4 |     0.8/   0.0 |     0.8/   0.0 |    39.2/   0.0 |
+modal:941:955 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    18.7/   0.7 |    33.6/   0.0 |    64.0/   1.4 |     0.8/   0.0 |     0.8/   0.0 |    39.2/   0.0 |
+modal:941:955 [0] NCCL INFO     AllReduce |    28.0/   0.1 |    50.5/   0.0 |    72.4/   0.6 |    30.8/   0.3 |    53.2/   0.0 |   119.6/   0.7 |     0.8/   0.0 |     0.8/   0.0 |    39.2/   0.0 |
+modal:941:955 [0] NCCL INFO   Algorithm   |                    CollNetChain                  |                            NVLS                  |                        NVLSTree                  |
+modal:941:955 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:941:955 [0] NCCL INFO  Max NThreads |              0 |              0 |            640 |              0 |              0 |            640 |              0 |              0 |            640 |
+modal:941:955 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    18.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    18.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO     AllReduce |     0.0/   0.0 |     0.0/   0.0 |    35.6/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    18.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |    56.0/   0.0 |
+modal:941:955 [0] NCCL INFO   Algorithm   |                             PAT                  |
+modal:941:955 [0] NCCL INFO   Protocol    |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |             LL |          LL128 |         Simple |
+modal:941:955 [0] NCCL INFO  Max NThreads |              0 |              0 |              0 |
+modal:941:955 [0] NCCL INFO     Broadcast |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO        Reduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO     AllGather |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO ReduceScatter |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO     AllReduce |     0.0/   0.0 |     0.0/   0.0 |     0.0/   0.0 |
+modal:941:955 [0] NCCL INFO TUNER/Plugin: Could not find: libnccl-tuner.so. Using internal tuner plugin.
+modal:941:941 [0] NCCL INFO AllReduce: opCount 0 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 3 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 4 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 5 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 6 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 7 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 8 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 9 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount a sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount b sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount c sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount d sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount e sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount f sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 10 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 11 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 12 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 13 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 14 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 15 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 16 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 17 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 18 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 19 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1a sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1b sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1c sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1d sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1e sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 1f sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 20 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 21 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 22 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 23 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 24 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 25 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 26 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 27 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 28 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 29 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2a sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2b sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2c sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2d sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2e sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 2f sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 30 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 31 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 32 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 33 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 34 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 35 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 36 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 37 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 38 sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 39 sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 3a sendbuff 0x2b0a02000000 recvbuff 0x2b0a02000000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
+modal:941:941 [0] NCCL INFO AllReduce: opCount 3b sendbuff 0x2b0a52a00000 recvbuff 0x2b0a52a00000 count 4194304 datatype 7 op 0 root 0 comm 0x5639c9181360 [nranks=8] stream (nil)
+modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}
