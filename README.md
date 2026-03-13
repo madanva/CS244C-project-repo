@@ -1,7 +1,7 @@
 # Bandit-Guided NCCL Tuning for Multi-Node GPU Clusters
 
 **Varun Madan** (vmadan@stanford.edu) and **Ashley Raigosa** (raigosa@stanford.edu)
-Stanford University -- CS244C: Topics in Networked Systems, Winter 2026
+Stanford University -- CS 244C: Advanced Networking and Distributed Systems, Winter 2026
 
 ## Key Finding
 
@@ -71,7 +71,7 @@ python regenerate_fig6_large_fonts.py
 @inproceedings{madan2026bandit,
   title     = {Bandit-Guided {NCCL} Tuning for Multi-Node {GPU} Clusters},
   author    = {Varun Madan and Ashley Raigosa},
-  booktitle = {Stanford CS244C: Topics in Networked Systems},
+  booktitle = {Stanford CS 244C: Advanced Networking and Distributed Systems},
   year      = {2026}
 }
 ```
