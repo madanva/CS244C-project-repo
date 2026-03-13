@@ -9,7 +9,7 @@ Each subdirectory contains the runner scripts, raw results, and analysis/plottin
 | `baseline/` | Section 3 (Characterization) | NCCL AllReduce performance across algorithms, protocols, and message sizes on A100 and L40S |
 | `contention/` | Section 3 | Impact of concurrent GPU compute stress on collective communication bandwidth/latency |
 | `overlap/` | Sections 3-4 | Compute-communication overlap effects on optimal configuration; NCCL channel count sweep |
-| `multinode/` | Section 3 | Multi-node amplification of AUTO suboptimality across 1x8, 2x4, 4x2 topologies |
+| `multinode/` | Section 3 | Multi-node amplification of AUTO suboptimality across 1x8, 2x4, 4x2 topologies; early AllGather and AWS g5.xlarge validation |
 | `tuner_evaluation/` | Section 5 | Validation of profile-guided and RL bandit tuners against AUTO baseline |
 
 ## Common structure
@@ -30,3 +30,4 @@ experiment_name/
 
 - **A100**: 8x NVIDIA A100 80GB SXM4, NVLink 3.0, NVSwitch (single-node) + InfiniBand (multi-node)
 - **L40S**: NVIDIA L40S, PCIe Gen4 (Stanford FarmShare)
+- **AWS g5.xlarge**: NVIDIA A10G, PCIe (early validation runs)

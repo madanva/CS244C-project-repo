@@ -52,6 +52,7 @@ Each experiment directory contains runner scripts (Modal cloud or Farmshare) and
 
 - **A100 cluster**: 8x NVIDIA A100 80GB SXM4, NVLink 3.0 (600 GB/s bisection), inter-node InfiniBand
 - **L40S cluster**: NVIDIA L40S GPUs, PCIe Gen4
+- **AWS g5.xlarge**: NVIDIA A10G, PCIe (early AllGather validation)
 
 ### Running an experiment
 
