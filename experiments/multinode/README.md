@@ -36,4 +36,4 @@ AUTO's latency penalty grows from ~1.2% (single-node, 1x8) to 57.2% (2x4) at 64 
 
 ## AllGather and AWS experiments
 
-AllGather experiments were also run on both Modal (A100) and AWS g5.xlarge (A10G) instances to verify that the AUTO suboptimality pattern generalizes beyond AllReduce. Results are in `aws-g5-allgather/`, `aws-g5-allreduce/`, `modal-a100-allgather/`, and `modal-allgather-results/`.
+AllGather experiments were also run on both Modal (A100) and AWS g5.xlarge (A10G) instances to verify that the AUTO suboptimality pattern generalizes beyond AllReduce. Results are in `allgather-preview/` and `aws-validation/`.
