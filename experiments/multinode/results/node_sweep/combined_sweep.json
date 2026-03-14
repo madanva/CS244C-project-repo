@@ -1,0 +1,464 @@
+{
+  "4x2": {
+    "results": {
+      "sequential": {
+        "256KB": {
+          "auto": 11.986,
+          "tree_simple": 11.437,
+          "tree_ll": 28.009,
+          "tree_ll128": 15.792,
+          "ring_simple": 11.541,
+          "ring_ll": 11.58,
+          "ring_ll128": 10.868
+        },
+        "1MB": {
+          "auto": 13.395,
+          "tree_simple": 15.043,
+          "tree_ll": 16.893,
+          "tree_ll128": 17.953,
+          "ring_simple": 13.872,
+          "ring_ll": 18.351,
+          "ring_ll128": 14.886
+        },
+        "4MB": {
+          "auto": 27.221,
+          "tree_simple": 23.71,
+          "tree_ll": 39.59,
+          "tree_ll128": 28.153,
+          "ring_simple": 20.557,
+          "ring_ll": 49.398,
+          "ring_ll128": 22.731
+        },
+        "16MB": {
+          "auto": 73.133,
+          "tree_simple": 67.221,
+          "tree_ll": 158.583,
+          "tree_ll128": 115.795,
+          "ring_simple": 242.556,
+          "ring_ll": 190.178,
+          "ring_ll128": 85.496
+        },
+        "64MB": {
+          "auto": 528.022,
+          "tree_simple": 375.526,
+          "tree_ll": 536.183,
+          "tree_ll128": 382.373,
+          "ring_simple": 408.266,
+          "ring_ll": 618.422,
+          "ring_ll128": 378.649
+        },
+        "256MB": {
+          "auto": 1634.824,
+          "tree_simple": 1118.397,
+          "tree_ll": 1961.517,
+          "tree_ll128": 1261.623,
+          "ring_simple": 1713.391,
+          "ring_ll": 2690.776,
+          "ring_ll128": 1621.757
+        }
+      },
+      "overlap": {
+        "256KB": {
+          "auto": 10.433,
+          "tree_simple": 11.197,
+          "tree_ll": 11.341,
+          "tree_ll128": 10.884,
+          "ring_simple": 10.449,
+          "ring_ll": 11.513,
+          "ring_ll128": 10.813
+        },
+        "1MB": {
+          "auto": 13.115,
+          "tree_simple": 13.212,
+          "tree_ll": 16.842,
+          "tree_ll128": 18.335,
+          "ring_simple": 13.648,
+          "ring_ll": 17.206,
+          "ring_ll128": 13.359
+        },
+        "4MB": {
+          "auto": 21.234,
+          "tree_simple": 23.177,
+          "tree_ll": 39.238,
+          "tree_ll128": 24.044,
+          "ring_simple": 21.191,
+          "ring_ll": 46.434,
+          "ring_ll128": 23.747
+        },
+        "16MB": {
+          "auto": 61.224,
+          "tree_simple": 52.514,
+          "tree_ll": 118.722,
+          "tree_ll128": 83.951,
+          "ring_simple": 235.778,
+          "ring_ll": 160.639,
+          "ring_ll128": 247.081
+        },
+        "64MB": {
+          "auto": 514.056,
+          "tree_simple": 392.816,
+          "tree_ll": 565.776,
+          "tree_ll128": 340.3,
+          "ring_simple": 511.583,
+          "ring_ll": 654.624,
+          "ring_ll128": 469.146
+        },
+        "256MB": {
+          "auto": 1991.755,
+          "tree_simple": 1217.32,
+          "tree_ll": 1971.936,
+          "tree_ll128": 1426.403,
+          "ring_simple": 1835.403,
+          "ring_ll": 2844.564,
+          "ring_ll128": 1843.708
+        }
+      }
+    },
+    "selections": {
+      "sequential_256KB": [
+        "modal:26:26 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_1MB": [
+        "modal:331:331 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_4MB": [
+        "modal:636:636 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_16MB": [
+        "modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_64MB": [
+        "modal:1246:1246 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_256MB": [
+        "modal:1551:1551 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_256KB": [
+        "modal:1856:1856 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_1MB": [
+        "modal:2161:2161 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_4MB": [
+        "modal:2466:2466 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_16MB": [
+        "modal:2771:2771 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_64MB": [
+        "modal:3076:3076 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_256MB": [
+        "modal:3381:3381 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ]
+    }
+  },
+  "1x8": {
+    "results": {
+      "sequential": {
+        "256KB": {
+          "auto": 8.717,
+          "tree_simple": 7.88,
+          "tree_ll": 7.677,
+          "tree_ll128": 8.231,
+          "ring_simple": 8.782,
+          "ring_ll": 9.148,
+          "ring_ll128": 8.98
+        },
+        "1MB": {
+          "auto": 8.841,
+          "tree_simple": 8.376,
+          "tree_ll": 7.765,
+          "tree_ll128": 7.681,
+          "ring_simple": 7.864,
+          "ring_ll": 7.842,
+          "ring_ll128": 8.639
+        },
+        "4MB": {
+          "auto": 8.686,
+          "tree_simple": 8.494,
+          "tree_ll": 7.772,
+          "tree_ll128": 7.74,
+          "ring_simple": 8.63,
+          "ring_ll": 7.703,
+          "ring_ll128": 8.475
+        },
+        "16MB": {
+          "auto": 8.79,
+          "tree_simple": 8.624,
+          "tree_ll": 8.102,
+          "tree_ll128": 7.988,
+          "ring_simple": 7.89,
+          "ring_ll": 7.993,
+          "ring_ll128": 8.424
+        },
+        "64MB": {
+          "auto": 9.376,
+          "tree_simple": 9.053,
+          "tree_ll": 9.238,
+          "tree_ll128": 8.54,
+          "ring_simple": 8.322,
+          "ring_ll": 8.941,
+          "ring_ll128": 8.711
+        },
+        "256MB": {
+          "auto": 10.718,
+          "tree_simple": 11.137,
+          "tree_ll": 14.379,
+          "tree_ll128": 11.295,
+          "ring_simple": 10.248,
+          "ring_ll": 13.144,
+          "ring_ll128": 10.72
+        }
+      },
+      "overlap": {
+        "256KB": {
+          "auto": 7.527,
+          "tree_simple": 7.98,
+          "tree_ll": 7.48,
+          "tree_ll128": 7.495,
+          "ring_simple": 7.594,
+          "ring_ll": 8.024,
+          "ring_ll128": 8.199
+        },
+        "1MB": {
+          "auto": 7.641,
+          "tree_simple": 8.349,
+          "tree_ll": 7.592,
+          "tree_ll128": 7.652,
+          "ring_simple": 7.652,
+          "ring_ll": 7.511,
+          "ring_ll128": 7.659
+        },
+        "4MB": {
+          "auto": 8.37,
+          "tree_simple": 7.813,
+          "tree_ll": 7.855,
+          "tree_ll128": 7.562,
+          "ring_simple": 7.712,
+          "ring_ll": 8.867,
+          "ring_ll128": 7.89
+        },
+        "16MB": {
+          "auto": 7.686,
+          "tree_simple": 8.286,
+          "tree_ll": 7.902,
+          "tree_ll128": 7.727,
+          "ring_simple": 7.731,
+          "ring_ll": 8.544,
+          "ring_ll128": 7.695
+        },
+        "64MB": {
+          "auto": 8.194,
+          "tree_simple": 8.727,
+          "tree_ll": 9.364,
+          "tree_ll128": 8.661,
+          "ring_simple": 8.317,
+          "ring_ll": 9.271,
+          "ring_ll128": 8.387
+        },
+        "256MB": {
+          "auto": 10.048,
+          "tree_simple": 10.786,
+          "tree_ll": 15.29,
+          "tree_ll128": 11.76,
+          "ring_simple": 10.023,
+          "ring_ll": 14.367,
+          "ring_ll128": 10.928
+        }
+      }
+    },
+    "selections": {
+      "sequential_256KB": [
+        "modal:32:32 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto LL channel{Lo..Hi}={0..7}"
+      ],
+      "sequential_1MB": [
+        "modal:1054:1054 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto LL channel{Lo..Hi}={0..23}"
+      ],
+      "sequential_4MB": [
+        "modal:2076:2076 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto LL128 channel{Lo..Hi}={0..23}"
+      ],
+      "sequential_16MB": [
+        "modal:3098:3098 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto LL128 channel{Lo..Hi}={0..23}"
+      ],
+      "sequential_64MB": [
+        "modal:4120:4120 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}"
+      ],
+      "sequential_256MB": [
+        "modal:5142:5142 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}"
+      ],
+      "overlap_256KB": [
+        "modal:6164:6164 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto LL channel{Lo..Hi}={0..7}"
+      ],
+      "overlap_1MB": [
+        "modal:7186:7186 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto LL channel{Lo..Hi}={0..23}"
+      ],
+      "overlap_4MB": [
+        "modal:8208:8208 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto LL128 channel{Lo..Hi}={0..23}"
+      ],
+      "overlap_16MB": [
+        "modal:9230:9230 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto LL128 channel{Lo..Hi}={0..23}"
+      ],
+      "overlap_64MB": [
+        "modal:10252:10252 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}"
+      ],
+      "overlap_256MB": [
+        "modal:11274:11274 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..23}"
+      ]
+    }
+  },
+  "2x4": {
+    "results": {
+      "sequential": {
+        "256KB": {
+          "auto": 11.076,
+          "tree_simple": 9.722,
+          "tree_ll": 10.085,
+          "tree_ll128": 10.103,
+          "ring_simple": 10.474,
+          "ring_ll": 10.318,
+          "ring_ll128": 11.536
+        },
+        "1MB": {
+          "auto": 12.756,
+          "tree_simple": 11.433,
+          "tree_ll": 16.881,
+          "tree_ll128": 12.416,
+          "ring_simple": 13.218,
+          "ring_ll": 16.324,
+          "ring_ll128": 12.356
+        },
+        "4MB": {
+          "auto": 19.488,
+          "tree_simple": 16.398,
+          "tree_ll": 29.65,
+          "tree_ll128": 19.678,
+          "ring_simple": 19.439,
+          "ring_ll": 42.85,
+          "ring_ll128": 25.669
+        },
+        "16MB": {
+          "auto": 38.16,
+          "tree_simple": 44.34,
+          "tree_ll": 83.961,
+          "tree_ll128": 47.555,
+          "ring_simple": 62.877,
+          "ring_ll": 144.913,
+          "ring_ll128": 80.522
+        },
+        "64MB": {
+          "auto": 276.54,
+          "tree_simple": 136.343,
+          "tree_ll": 301.245,
+          "tree_ll128": 266.778,
+          "ring_simple": 497.061,
+          "ring_ll": 773.046,
+          "ring_ll128": 463.69
+        },
+        "256MB": {
+          "auto": 824.677,
+          "tree_simple": 834.855,
+          "tree_ll": 1555.771,
+          "tree_ll128": 900.51,
+          "ring_simple": 1349.534,
+          "ring_ll": 2355.787,
+          "ring_ll128": 1281.359
+        }
+      },
+      "overlap": {
+        "256KB": {
+          "auto": 10.071,
+          "tree_simple": 9.096,
+          "tree_ll": 9.553,
+          "tree_ll128": 9.298,
+          "ring_simple": 9.822,
+          "ring_ll": 10.245,
+          "ring_ll128": 9.374
+        },
+        "1MB": {
+          "auto": 12.827,
+          "tree_simple": 10.438,
+          "tree_ll": 12.865,
+          "tree_ll128": 15.108,
+          "ring_simple": 12.814,
+          "ring_ll": 15.696,
+          "ring_ll128": 11.36
+        },
+        "4MB": {
+          "auto": 17.451,
+          "tree_simple": 16.114,
+          "tree_ll": 28.011,
+          "tree_ll128": 18.573,
+          "ring_simple": 21.53,
+          "ring_ll": 41.218,
+          "ring_ll128": 26.508
+        },
+        "16MB": {
+          "auto": 36.808,
+          "tree_simple": 36.699,
+          "tree_ll": 89.928,
+          "tree_ll128": 46.963,
+          "ring_simple": 128.831,
+          "ring_ll": 153.556,
+          "ring_ll128": 58.501
+        },
+        "64MB": {
+          "auto": 283.403,
+          "tree_simple": 280.042,
+          "tree_ll": 297.781,
+          "tree_ll128": 283.171,
+          "ring_simple": 388.625,
+          "ring_ll": 578.874,
+          "ring_ll128": 379.753
+        },
+        "256MB": {
+          "auto": 664.374,
+          "tree_simple": 797.662,
+          "tree_ll": 1248.286,
+          "tree_ll128": 855.756,
+          "ring_simple": 1202.447,
+          "ring_ll": 2392.315,
+          "ring_ll128": 1393.796
+        }
+      }
+    },
+    "selections": {
+      "sequential_256KB": [
+        "modal:28:28 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_1MB": [
+        "modal:557:557 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_4MB": [
+        "modal:1086:1086 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_16MB": [
+        "modal:1614:1614 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_64MB": [
+        "modal:2142:2142 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "sequential_256MB": [
+        "modal:2670:2670 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_256KB": [
+        "modal:3198:3198 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_1MB": [
+        "modal:3727:3727 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_4MB": [
+        "modal:4256:4256 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_16MB": [
+        "modal:4784:4784 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_64MB": [
+        "modal:5312:5312 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ],
+      "overlap_256MB": [
+        "modal:5840:5840 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo TREE proto SIMPLE channel{Lo..Hi}={0..1}"
+      ]
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "sequential": {
+    "256KB": {
+      "auto": 10.623,
+      "tree_simple": 9.472,
+      "tree_ll": 10.16,
+      "tree_ll128": 9.921,
+      "ring_simple": 10.666,
+      "ring_ll": 10.408,
+      "ring_ll128": 10.155,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "1MB": {
+      "auto": 12.937,
+      "tree_simple": 10.991,
+      "tree_ll": 13.526,
+      "tree_ll128": 11.957,
+      "ring_simple": 12.657,
+      "ring_ll": 16.538,
+      "ring_ll128": 12.203,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "4MB": {
+      "auto": 15.194,
+      "tree_simple": 16.109,
+      "tree_ll": 28.009,
+      "tree_ll128": 19.942,
+      "ring_simple": 18.676,
+      "ring_ll": 42.316,
+      "ring_ll128": 19.247,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "16MB": {
+      "auto": 38.378,
+      "tree_simple": 215.507,
+      "tree_ll": 85.936,
+      "tree_ll128": 43.358,
+      "ring_simple": 61.736,
+      "ring_ll": 150.771,
+      "ring_ll128": 67.808,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "64MB": {
+      "auto": 271.387,
+      "tree_simple": 200.002,
+      "tree_ll": 300.639,
+      "tree_ll128": 285.061,
+      "ring_simple": 337.919,
+      "ring_ll": 545.118,
+      "ring_ll128": 345.867,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "256MB": {
+      "auto": 669.398,
+      "tree_simple": 719.601,
+      "tree_ll": 1202.351,
+      "tree_ll128": 667.165,
+      "ring_simple": 1225.697,
+      "ring_ll": 2157.1,
+      "ring_ll128": 1074.25,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    }
+  },
+  "overlap": {
+    "256KB": {
+      "auto": 9.68,
+      "tree_simple": 11.45,
+      "tree_ll": 9.532,
+      "tree_ll128": 9.332,
+      "ring_simple": 9.642,
+      "ring_ll": 9.795,
+      "ring_ll128": 9.311,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "1MB": {
+      "auto": 12.543,
+      "tree_simple": 10.48,
+      "tree_ll": 13.476,
+      "tree_ll128": 11.442,
+      "ring_simple": 12.19,
+      "ring_ll": 15.121,
+      "ring_ll128": 11.731,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "4MB": {
+      "auto": 14.327,
+      "tree_simple": 14.99,
+      "tree_ll": 26.825,
+      "tree_ll128": 18.126,
+      "ring_simple": 18.933,
+      "ring_ll": 41.391,
+      "ring_ll128": 19.87,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "16MB": {
+      "auto": 32.025,
+      "tree_simple": 36.462,
+      "tree_ll": 82.421,
+      "tree_ll128": 95.878,
+      "ring_simple": 234.583,
+      "ring_ll": 141.623,
+      "ring_ll128": 55.075,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "64MB": {
+      "auto": 138.17,
+      "tree_simple": 119.982,
+      "tree_ll": 303.361,
+      "tree_ll128": 283.826,
+      "ring_simple": 332.623,
+      "ring_ll": 536.845,
+      "ring_ll128": 362.15,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    },
+    "256MB": {
+      "auto": 583.522,
+      "tree_simple": 572.412,
+      "tree_ll": 1185.787,
+      "tree_ll128": 755.745,
+      "ring_simple": 1178.344,
+      "ring_ll": 2129.798,
+      "ring_ll128": 1227.833,
+      "collnet_direct_simple": 0,
+      "collnet_chain_simple": 0,
+      "nvls_simple": 0,
+      "nvls_tree_simple": 0
+    }
+  }
+}

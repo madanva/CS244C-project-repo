@@ -1,0 +1,173 @@
+{
+  "topology": "1x8",
+  "profile": {
+    "sequential": {
+      "256KB": {
+        "auto": 9.767,
+        "tree_simple": 9.803,
+        "tree_ll": 9.715,
+        "tree_ll128": 9.694,
+        "ring_simple": 9.837,
+        "ring_ll": 9.669,
+        "ring_ll128": 9.697
+      },
+      "1MB": {
+        "auto": 9.72,
+        "tree_simple": 9.9,
+        "tree_ll": 9.057,
+        "tree_ll128": 9.517,
+        "ring_simple": 9.59,
+        "ring_ll": 9.69,
+        "ring_ll128": 9.812
+      },
+      "4MB": {
+        "auto": 9.781,
+        "tree_simple": 9.975,
+        "tree_ll": 7.841,
+        "tree_ll128": 7.874,
+        "ring_simple": 9.99,
+        "ring_ll": 9.73,
+        "ring_ll128": 9.776
+      },
+      "16MB": {
+        "auto": 8.988,
+        "tree_simple": 9.932,
+        "tree_ll": 10.13,
+        "tree_ll128": 9.99,
+        "ring_simple": 9.727,
+        "ring_ll": 10.157,
+        "ring_ll128": 10.125
+      },
+      "64MB": {
+        "auto": 10.482,
+        "tree_simple": 11.098,
+        "tree_ll": 9.362,
+        "tree_ll128": 8.609,
+        "ring_simple": 8.301,
+        "ring_ll": 11.299,
+        "ring_ll128": 10.731
+      },
+      "256MB": {
+        "auto": 10.989,
+        "tree_simple": 13.208,
+        "tree_ll": 14.334,
+        "tree_ll128": 11.495,
+        "ring_simple": 10.192,
+        "ring_ll": 13.271,
+        "ring_ll128": 11.749
+      }
+    },
+    "overlap": {
+      "256KB": {
+        "auto": 9.565,
+        "tree_simple": 9.083,
+        "tree_ll": 7.545,
+        "tree_ll128": 9.697,
+        "ring_simple": 9.571,
+        "ring_ll": 9.205,
+        "ring_ll128": 9.713
+      },
+      "1MB": {
+        "auto": 9.53,
+        "tree_simple": 9.664,
+        "tree_ll": 9.602,
+        "tree_ll128": 9.566,
+        "ring_simple": 9.765,
+        "ring_ll": 9.637,
+        "ring_ll128": 9.528
+      },
+      "4MB": {
+        "auto": 9.593,
+        "tree_simple": 8.043,
+        "tree_ll": 9.709,
+        "tree_ll128": 7.739,
+        "ring_simple": 9.737,
+        "ring_ll": 9.667,
+        "ring_ll128": 9.712
+      },
+      "16MB": {
+        "auto": 9.885,
+        "tree_simple": 9.078,
+        "tree_ll": 9.975,
+        "tree_ll128": 9.793,
+        "ring_simple": 9.829,
+        "ring_ll": 9.99,
+        "ring_ll128": 9.876
+      },
+      "64MB": {
+        "auto": 8.223,
+        "tree_simple": 8.938,
+        "tree_ll": 11.301,
+        "tree_ll128": 10.33,
+        "ring_simple": 10.245,
+        "ring_ll": 11.548,
+        "ring_ll128": 10.548
+      },
+      "256MB": {
+        "auto": 11.325,
+        "tree_simple": 11.735,
+        "tree_ll": 15.608,
+        "tree_ll128": 11.907,
+        "ring_simple": 10.037,
+        "ring_ll": 14.713,
+        "ring_ll128": 11.233
+      }
+    }
+  },
+  "policy_sequential": "3:0:0,4:0:0,5:1:2,6:1:2",
+  "policy_overlap": "2:0:0,4:0:1,6:1:2",
+  "validation": {
+    "sequential": {
+      "256KB": {
+        "auto": 8.53,
+        "tuner": 7.807
+      },
+      "1MB": {
+        "auto": 7.791,
+        "tuner": 8.037
+      },
+      "4MB": {
+        "auto": 7.991,
+        "tuner": 7.93
+      },
+      "16MB": {
+        "auto": 7.878,
+        "tuner": 8.624
+      },
+      "64MB": {
+        "auto": 8.276,
+        "tuner": 8.232
+      },
+      "256MB": {
+        "auto": 10.156,
+        "tuner": 10.213
+      }
+    },
+    "overlap": {
+      "256KB": {
+        "auto": 8.94,
+        "tuner": 8.624
+      },
+      "1MB": {
+        "auto": 8.585,
+        "tuner": 8.305
+      },
+      "4MB": {
+        "auto": 7.598,
+        "tuner": 7.584
+      },
+      "16MB": {
+        "auto": 7.709,
+        "tuner": 7.974
+      },
+      "64MB": {
+        "auto": 8.146,
+        "tuner": 8.277
+      },
+      "256MB": {
+        "auto": 10.017,
+        "tuner": 10.073
+      }
+    }
+  }
+}

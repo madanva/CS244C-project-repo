@@ -1,0 +1,10 @@
+{
+  "n_nodes": 2,
+  "gpus_per_node": 4,
+  "world_size": 8,
+  "container_ips": [
+    "fdaa:389d:592d:ac1e:102c:623:f13e:4a4c",
+    "fdaa:389d:592d:ac1e:1041:b555:bc4c:4bc8"
+  ],
+  "timestamp": "2026-03-05T06:27:08Z"
+}

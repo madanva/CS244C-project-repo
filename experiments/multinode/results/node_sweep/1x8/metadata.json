@@ -1,0 +1,9 @@
+{
+  "n_nodes": 1,
+  "gpus_per_node": 8,
+  "world_size": 8,
+  "container_ips": [
+    "127.0.0.1"
+  ],
+  "timestamp": "2026-03-05T00:06:36Z"
+}

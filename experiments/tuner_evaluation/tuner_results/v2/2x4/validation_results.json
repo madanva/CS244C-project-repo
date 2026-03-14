@@ -1,0 +1,114 @@
+{
+  "topology": "2x4",
+  "profile": {
+    "256KB": {
+      "auto": 9.643,
+      "tree_simple": 8.823,
+      "tree_ll": 9.947,
+      "tree_ll128": 9.124,
+      "ring_simple": 9.481,
+      "ring_ll": 10.003,
+      "ring_ll128": 9.162
+    },
+    "1MB": {
+      "auto": 11.79,
+      "tree_simple": 10.281,
+      "tree_ll": 12.912,
+      "tree_ll128": 11.082,
+      "ring_simple": 12.188,
+      "ring_ll": 34.687,
+      "ring_ll128": 11.892
+    },
+    "4MB": {
+      "auto": 15.586,
+      "tree_simple": 16.042,
+      "tree_ll": 27.894,
+      "tree_ll128": 17.935,
+      "ring_simple": 20.723,
+      "ring_ll": 109.666,
+      "ring_ll128": 69.614
+    },
+    "16MB": {
+      "auto": 93.998,
+      "tree_simple": 35.944,
+      "tree_ll": 102.45,
+      "tree_ll128": 42.443,
+      "ring_simple": 57.934,
+      "ring_ll": 145.934,
+      "ring_ll128": 48.386
+    },
+    "64MB": {
+      "auto": 276.682,
+      "tree_simple": 266.218,
+      "tree_ll": 301.438,
+      "tree_ll128": 282.684,
+      "ring_simple": 379.516,
+      "ring_ll": 510.323,
+      "ring_ll128": 400.03
+    },
+    "256MB": {
+      "auto": 737.267,
+      "tree_simple": 739.729,
+      "tree_ll": 1270.893,
+      "tree_ll128": 744.234,
+      "ring_simple": 1316.23,
+      "ring_ll": 2110.351,
+      "ring_ll128": 1262.198
+    }
+  },
+  "policy": "2:0:2,3:0:2,4:0:2",
+  "validation": {
+    "sequential": {
+      "256KB": {
+        "auto": 10.51,
+        "tuner": 10.308
+      },
+      "1MB": {
+        "auto": 12.347,
+        "tuner": 12.363
+      },
+      "4MB": {
+        "auto": 15.269,
+        "tuner": 15.491
+      },
+      "16MB": {
+        "auto": 32.194,
+        "tuner": 35.81
+      },
+      "64MB": {
+        "auto": 271.778,
+        "tuner": 271.49
+      },
+      "256MB": {
+        "auto": 659.8,
+        "tuner": 671.714
+      }
+    },
+    "overlap": {
+      "256KB": {
+        "auto": 9.488,
+        "tuner": 9.362
+      },
+      "1MB": {
+        "auto": 11.816,
+        "tuner": 11.75
+      },
+      "4MB": {
+        "auto": 13.955,
+        "tuner": 14.065
+      },
+      "16MB": {
+        "auto": 38.72,
+        "tuner": 37.378
+      },
+      "64MB": {
+        "auto": 336.338,
+        "tuner": 140.782
+      },
+      "256MB": {
+        "auto": 847.746,
+        "tuner": 766.363
+      }
+    }
+  }
+}

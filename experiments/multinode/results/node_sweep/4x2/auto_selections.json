@@ -1,0 +1,38 @@
+{
+  "sequential_256KB": [
+    "modal:26:26 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "sequential_1MB": [
+    "modal:331:331 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "sequential_4MB": [
+    "modal:636:636 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "sequential_16MB": [
+    "modal:941:941 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "sequential_64MB": [
+    "modal:1246:1246 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "sequential_256MB": [
+    "modal:1551:1551 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_256KB": [
+    "modal:1856:1856 [0] NCCL INFO AllReduce: 262144 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_1MB": [
+    "modal:2161:2161 [0] NCCL INFO AllReduce: 1048576 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_4MB": [
+    "modal:2466:2466 [0] NCCL INFO AllReduce: 4194304 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_16MB": [
+    "modal:2771:2771 [0] NCCL INFO AllReduce: 16777216 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_64MB": [
+    "modal:3076:3076 [0] NCCL INFO AllReduce: 67108864 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ],
+  "overlap_256MB": [
+    "modal:3381:3381 [0] NCCL INFO AllReduce: 268435456 Bytes -> Algo RING proto SIMPLE channel{Lo..Hi}={0..1}"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "topology": "4x2",
+  "bandit_iters": 200,
+  "explore_rounds": 5,
+  "explore_iters": 20,
+  "results": {
+    "64MB": {
+      "auto": {
+        "median_all": 81.782,
+        "median_exploit": 81.782,
+        "mean_exploit": 108.475,
+        "std_exploit": 62.681,
+        "n_total": 200,
+        "n_exploit": 200
+      },
+      "bandit": {
+        "median_all": 61.382,
+        "median_exploit": 60.936,
+        "mean_exploit": 75.172,
+        "std_exploit": 48.965,
+        "n_total": 200,
+        "n_exploit": 180
+      },
+      "speedup_pct": 25.5
+    },
+    "256MB": {
+      "auto": {
+        "median_all": 251.713,
+        "median_exploit": 251.713,
+        "mean_exploit": 325.86,
+        "std_exploit": 297.943,
+        "n_total": 200,
+        "n_exploit": 200
+      },
+      "bandit": {
+        "median_all": 196.212,
+        "median_exploit": 194.647,
+        "mean_exploit": 226.386,
+        "std_exploit": 70.645,
+        "n_total": 200,
+        "n_exploit": 180
+      },
+      "speedup_pct": 22.7
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "2x4": {
+    "topology": "2x4",
+    "bandit_iters": 200,
+    "explore_rounds": 5,
+    "explore_iters": 20,
+    "results": {
+      "64MB": {
+        "auto": {
+          "median_all": 143.785,
+          "median_exploit": 143.785,
+          "mean_exploit": 217.654,
+          "std_exploit": 119.698,
+          "n_total": 200,
+          "n_exploit": 200
+        },
+        "bandit": {
+          "median_all": 267.137,
+          "median_exploit": 267.137,
+          "mean_exploit": 221.329,
+          "std_exploit": 118.887,
+          "n_total": 200,
+          "n_exploit": 180
+        },
+        "speedup_pct": -85.8
+      },
+      "256MB": {
+        "auto": {
+          "median_all": 724.679,
+          "median_exploit": 724.679,
+          "mean_exploit": 806.936,
+          "std_exploit": 325.177,
+          "n_total": 200,
+          "n_exploit": 200
+        },
+        "bandit": {
+          "median_all": 693.847,
+          "median_exploit": 695.379,
+          "mean_exploit": 763.006,
+          "std_exploit": 245.458,
+          "n_total": 200,
+          "n_exploit": 180
+        },
+        "speedup_pct": 4.0
+      }
+    }
+  },
+  "4x2": {
+    "topology": "4x2",
+    "bandit_iters": 200,
+    "explore_rounds": 5,
+    "explore_iters": 20,
+    "results": {
+      "64MB": {
+        "auto": {
+          "median_all": 81.782,
+          "median_exploit": 81.782,
+          "mean_exploit": 108.475,
+          "std_exploit": 62.681,
+          "n_total": 200,
+          "n_exploit": 200
+        },
+        "bandit": {
+          "median_all": 61.382,
+          "median_exploit": 60.936,
+          "mean_exploit": 75.172,
+          "std_exploit": 48.965,
+          "n_total": 200,
+          "n_exploit": 180
+        },
+        "speedup_pct": 25.5
+      },
+      "256MB": {
+        "auto": {
+          "median_all": 251.713,
+          "median_exploit": 251.713,
+          "mean_exploit": 325.86,
+          "std_exploit": 297.943,
+          "n_total": 200,
+          "n_exploit": 200
+        },
+        "bandit": {
+          "median_all": 196.212,
+          "median_exploit": 194.647,
+          "mean_exploit": 226.386,
+          "std_exploit": 70.645,
+          "n_total": 200,
+          "n_exploit": 180
+        },
+        "speedup_pct": 22.7
+      }
+    }
+  }
+}

@@ -1,3 +1,0 @@
-# For run_modal.py
-# pip install -r requirements-modal.txt && modal run run_modal.py
-modal>=0.64.0
